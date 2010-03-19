@@ -35,7 +35,7 @@ distclean: clean
 tarball: distclean
 	if tar --version 2>/dev/null | grep -q GNU; then : ;else echo "this requires GNU tar" 1>&2; exit 1; fi
 	ln -s "`pwd`" /tmp/pgreplay-$(VERSION)
-	tar -cf pgreplay-$(VERSION).tar -h -C /tmp --exclude .svn --exclude .cvs --exclude pgreplay-$(VERSION).tar pgreplay-$(VERSION) --exclude test/testrun.c
+	tar -cf pgreplay-$(VERSION).tar -h -C /tmp --exclude .svn --exclude CVS --exclude pgreplay-$(VERSION).tar pgreplay-$(VERSION) --exclude test/testrun.c
 	rm /tmp/pgreplay-$(VERSION)
 	gzip -9 pgreplay-$(VERSION).tar
 
