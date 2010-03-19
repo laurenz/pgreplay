@@ -1,0 +1,103 @@
+#!/bin/sh
+
+pgbindir="@pgbindir@"
+if [ -z "$pgbindir" ]; then
+	PSQL=psql
+else
+	PSQL="$pgbindir"/psql
+fi
+
+echo "Testing stderr log parsing ... "
+../pgreplay -f -o parse_err.rf -b '2010-03-02 15:33:53.676' -e '2010-03-02 15:34:30.988' errlog >parse_err.out 2>parse_err.err
+if [ $? -ne 0 ]; then
+	echo "command failed, error messages:"
+	cat parse_err.err
+	rm -f parse_err.rf parse_err.out parse_err.err
+	exit 1
+fi
+diff -b parse_err.err parse_err.exp >parse_err.diff
+if [ $? -ne 0 ]; then
+	echo "unexpected messages, difference to expected:"
+	cat parse_err.diff
+	rm -f parse_err.rf parse_err.out parse_err.err parse_err.diff
+	exit 1
+fi
+if [ -s parse_err.out ]; then
+	echo "unexpected output:"
+	cat parse_err.out
+	rm -f parse_err.rf parse_err.out parse_err.err parse_err.diff
+	exit 1
+fi
+cmp parse_err.rf replayfile >parse_err.diff
+if [ $? -ne 0 ]; then
+	echo "unexpected replay file:"
+	cat parse_err.diff
+	rm -f parse_err.rf parse_err.out parse_err.err parse_err.diff
+	exit 1
+fi
+echo "ok"
+rm -f parse_err.rf parse_err.out parse_err.err parse_err.diff
+
+echo "Testing CSV log parsing ... "
+../pgreplay -f -c -o parse_csv.rf -b '2010-03-02 15:33:53.676' -e '2010-03-02 15:34:30.988' csvlog >parse_csv.out 2>parse_csv.err
+if [ $? -ne 0 ]; then
+	echo "command failed, error messages:"
+	cat parse_csv.err
+	rm -f parse_csv.rf parse_csv.out parse_csv.err
+	exit 1
+fi
+diff -b parse_csv.err parse_csv.exp >parse_csv.diff
+if [ $? -ne 0 ]; then
+	echo "unexpected messages, difference to expected:"
+	cat parse_csv.diff
+	rm -f parse_csv.rf parse_csv.out parse_csv.err parse_csv.diff
+	exit 1
+fi
+if [ -s parse_csv.out ]; then
+	echo "unexpected output:"
+	cat parse_csv.out
+	rm -f parse_csv.rf parse_csv.out parse_csv.err parse_csv.diff
+	exit 1
+fi
+cmp parse_csv.rf replayfile >parse_csv.diff
+if [ $? -ne 0 ]; then
+	echo "unexpected replay file:"
+	cat parse_csv.diff
+	rm -f parse_csv.rf parse_csv.out parse_csv.err parse_csv.diff
+	exit 1
+fi
+echo "ok"
+rm -f parse_csv.rf parse_csv.out parse_csv.err parse_csv.diff
+
+echo "Testing replay ... "
+"$PSQL" -U postgres -d postgres -l >/dev/null 2>&1
+if [ $? -ne 0 ]; then
+	echo "skipped, cannot connect to database"
+	echo "To run this test, configure your environment so that this command succeeds:"
+	echo "\"$PSQL\" -U postgres -d postgres -l"
+	exit 1
+fi
+../pgreplay -r -s 2 -E UTF8 -d 1 replayfile >replay.out 2>replay.err
+if [ $? -ne 0 ]; then
+	echo "command failed, error messages:"
+	cat replay.err
+	rm -f replay.out replay.err
+	exit 1
+fi
+diff -b replay.out replay_out.exp >replay.diff
+if [ $? -ne 0 ]; then
+	echo "unexpected output, difference to expected:"
+	cat replay.diff
+	rm -f replay.out replay.err replay.diff
+	exit 1
+fi
+diff -b replay.err replay_err.exp >replay.diff
+if [ $? -ne 0 ]; then
+	echo "unexpected messages, difference to expected:"
+	cat replay.diff
+	rm -f replay.out replay.err replay.diff
+	exit 1
+fi
+echo "ok"
+rm -f replay.out replay.err replay.diff
+exit 0

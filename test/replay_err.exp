@@ -1,0 +1,229 @@
+---------------------------
+Item: time       = 1267540433.676000
+      session id = 0x4b8d21d1000004b4
+      type       = connect
+      user       = postgres
+      database   = postgres
+---------------------------
+---------------------------
+Item: time       = 1267540433.676000
+      session id = 0x4b8d21d1000004b4
+      type       = execute
+      statement  =                              
+---------------------------
+---------------------------
+Item: time       = 1267540433.676000
+      session id = 0x4b8d21d1000004b3
+      type       = connect
+      user       = postgres
+      database   = postgres
+---------------------------
+---------------------------
+Item: time       = 1267540433.679000
+      session id = 0x4b8d21d1000004b3
+      type       = execute
+      statement  =                                
+---------------------------
+---------------------------
+Item: time       = 1267540434.185000
+      session id = 0x4b8d21d1000004b4
+      type       = execute
+      statement  = CREATE TABLE runtest(
+   id integer PRIMARY KEY,
+   c text NOT NULL,
+   t timestamp with time zone NOT NULL,
+   b bytea
+)
+---------------------------
+---------------------------
+Item: time       = 1267540434.706000
+      session id = 0x4b8d21d1000004b3
+      type       = prepare
+      name       = 
+      statement  = INSERT INTO runtest (id, c, t, b) VALUES ($1, $2, $3, $4)
+---------------------------
+---------------------------
+Item: time       = 1267540434.706000
+      session id = 0x4b8d21d1000004b3
+      type       = exec_prepared
+      name       = 
+      $1         = 1
+      $2         = ein '€"
+      $3         = 2008-08-08 12:30:00+02
+      $4         = a\000b\011c
+---------------------------
+---------------------------
+Item: time       = 1267540435.217000
+      session id = 0x4b8d21d3000004c1
+      type       = connect
+      user       = postgres
+      database   = postgres
+---------------------------
+---------------------------
+Item: time       = 1267540435.220000
+      session id = 0x4b8d21d3000004c1
+      type       = execute
+      statement  =                              
+---------------------------
+---------------------------
+Item: time       = 1267540436.236000
+      session id = 0x4b8d21d3000004c1
+      type       = prepare
+      name       = 
+      statement  = INSERT INTO runtest (id, c, t, b) VALUES ($1, $2, $3, $4)
+---------------------------
+---------------------------
+Item: time       = 1267540436.236000
+      session id = 0x4b8d21d3000004c1
+      type       = exec_prepared
+      name       = 
+      $1         = 2
+      $2         = Zeile
+zwei
+      $3         = 1968-10-20 12:00:00+01
+      $4         = (null)
+---------------------------
+---------------------------
+Item: time       = 1267540436.746000
+      session id = 0x4b8d21d1000004b4
+      type       = execute
+      statement  =                                      
+---------------------------
+---------------------------
+Item: time       = 1267540437.765000
+      session id = 0x4b8d21d1000004b3
+      type       = execute
+      statement  = BEGIN
+---------------------------
+---------------------------
+Item: time       = 1267540438.785000
+      session id = 0x4b8d21d1000004b3
+      type       = prepare
+      name       = einf"ug
+      statement  = INSERT INTO runtest (id, c, t, b) VALUES ($1, $2, $3, $4)
+---------------------------
+---------------------------
+Item: time       = 1267540438.785000
+      session id = 0x4b8d21d1000004b3
+      type       = exec_prepared
+      name       = einf"ug
+      $1         = 6
+      $2         = mit	Tabulator
+      $3         = 2050-04-01 00:00:00+02
+      $4         = (null)
+---------------------------
+---------------------------
+Item: time       = 1267540439.299000
+      session id = 0x4b8d21d3000004c1
+      type       = prepare
+      name       = 
+      statement  = INSERT INTO runtest (id, c, t, b) VALUES ($1, $2, $3, $4)
+---------------------------
+---------------------------
+Item: time       = 1267540439.299000
+      session id = 0x4b8d21d3000004c1
+      type       = exec_prepared
+      name       = 
+      $1         = 6
+      $2         = irgendein Mist
+      $3         = 2000-01-01 00:00:00+01
+      $4         = \000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000...
+---------------------------
+---------------------------
+Item: time       = 1267540440.826000
+      session id = 0x4b8d21d1000004b3
+      type       = exec_prepared
+      name       = einf"ug
+      $1         = 7
+      $2         = 
+      $3         = 2004-02-29 23:59:59.999999+01
+      $4         = (null)
+---------------------------
+---------------------------
+Item: time       = 1267540441.336000
+      session id = 0x4b8d21d1000004b3
+      type       = execute
+      statement  = COMMIT
+---------------------------
+---------------------------
+Item: time       = 1267540442.356000
+      session id = 0x4b8d21d1000004b3
+      type       = execute
+      statement  = DEALLOCATE "einf""ug"
+---------------------------
+---------------------------
+Item: time       = 1267540442.866000
+      session id = 0x4b8d21d1000004b4
+      type       = execute
+      statement  = SELECT id, c, t, b FROM runtest WHERE id <= 4
+---------------------------
+---------------------------
+Item: time       = 1267540443.376000
+      session id = 0x4b8d21d3000004c1
+      type       = execute
+      statement  = BEGIN; DECLARE mycur CURSOR FOR SELECT * FROM runtest ORDER BY id; DEALLOCATE/* a silly /* nested */ comment */
+-- another comment
+ALL
+---------------------------
+---------------------------
+Item: time       = 1267540444.396000
+      session id = 0x4b8d21d3000004c1
+      type       = execute
+      statement  = MOVE FORWARD 5 FROM mycur
+---------------------------
+---------------------------
+Item: time       = 1267540444.906000
+      session id = 0x4b8d21d3000004c1
+      type       = execute
+      statement  = FETCH mycur
+---------------------------
+---------------------------
+Item: time       = 1267540445.416000
+      session id = 0x4b8d21d3000004c1
+      type       = execute
+      statement  = select proname, oid from pg_catalog.pg_proc where proname in ('lo_open', 'lo_close', 'lo_creat', 'lo_create', 'lo_unlink', 'lo_lseek', 'lo_tell', 'lo_truncate', 'loread', 'lowrite') and pronamespace = (select oid from pg_catalog.pg_namespace where nspname = 'pg_catalog')
+---------------------------
+---------------------------
+Item: time       = 1267540445.926000
+      session id = 0x4b8d21d3000004c1
+      type       = execute
+      statement  = COMMIT
+---------------------------
+---------------------------
+Item: time       = 1267540446.946000
+      session id = 0x4b8d21d1000004b3
+      type       = execute
+      statement  = SELECT pg_sleep(22)
+---------------------------
+---------------------------
+Item: time       = 1267540468.948000
+      session id = 0x4b8d21d1000004b3
+      type       = execute
+      statement  = SELECT pg_sleep(10)
+---------------------------
+---------------------------
+Item: time       = 1267540469.460000
+      session id = 0x4b8d21d1000004b3
+      type       = cancel
+---------------------------
+---------------------------
+Item: time       = 1267540470.478000
+      session id = 0x4b8d21d1000004b4
+      type       = execute
+      statement  = DROP TABLE runtest
+---------------------------
+---------------------------
+Item: time       = 1267540470.988000
+      session id = 0x4b8d21d1000004b4
+      type       = disconnect
+---------------------------
+---------------------------
+Item: time       = 1267540470.988000
+      session id = 0x4b8d21d1000004b3
+      type       = disconnect
+---------------------------
+---------------------------
+Item: time       = 1267540470.988000
+      session id = 0x4b8d21d3000004c1
+      type       = disconnect
+---------------------------

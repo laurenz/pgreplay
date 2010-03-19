@@ -1,0 +1,60 @@
+CFLAGS = @CFLAGS@
+LDFLAGS = @LDFLAGS@
+LIBS = @LIBS@
+CC = @CC@
+EXTRA_OBJS = @EXTRA_OBJS@
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+bindir = @bindir@
+datarootdir = @datarootdir@
+datadir = @datadir@
+mandir = @mandir@
+docdir = @docdir@
+htmldir = @htmldir@
+INSTALL = @INSTALL@
+VERSION = @PACKAGE_VERSION@
+EXE = pgreplay
+OBJS = parse.o replayitem.o main.o replayfile.o database.o $(EXTRA_OBJS)
+HEADERS = config.h pgreplay.h
+
+.PHONY: clean distclean tarball test install install_bin install_man install_html
+
+.SUFFIXES: .o .c .h
+
+$(EXE): $(OBJS) $(HEADERS)
+	$(CC) -o $@ $(CFLAGS) $(OBJS) $(LDFLAGS) $(LIBS)
+
+$(OBJS): $(HEADERS)
+
+clean:
+	rm -f $(OBJS) $(EXE)
+
+distclean: clean
+	rm -rf Makefile config.h config.h.in~ config.log config.cache config.status autom4te.cache test/runtest.sh pgreplay-$(VERSION).tar*
+
+tarball: distclean
+	if tar --version 2>/dev/null | grep -q GNU; then : ;else echo "this requires GNU tar" 1>&2; exit 1; fi
+	ln -s "`pwd`" /tmp/pgreplay-$(VERSION)
+	tar -cf pgreplay-$(VERSION).tar -h -C /tmp --exclude .svn --exclude .cvs --exclude pgreplay-$(VERSION).tar pgreplay-$(VERSION) --exclude test/testrun.c
+	rm /tmp/pgreplay-$(VERSION)
+	gzip -9 pgreplay-$(VERSION).tar
+
+$(EXE).html: $(EXE).1
+	groff -Thtml -mman $< > $@
+
+test: $(EXE) test/runtest.sh
+	cd test && ./runtest.sh
+
+install: install_bin install_man
+
+install_bin: $(EXE)
+	$(INSTALL) -D -m 0755 $< $(bindir)/$<
+
+install_man: $(EXE).1
+	$(INSTALL) -D -m 0644 $< $(mandir)/man1/$<
+
+install_html: $(EXE).html
+	$(INSTALL) -D -m 0644 $< $(htmldir)/$<
+
+.c.o: $(HEADERS)
+	$(CC) -c $(CFLAGS) -DVERSION='"$(VERSION)"' $<
