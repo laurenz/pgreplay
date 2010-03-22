@@ -77,6 +77,9 @@ static const char *start_time, *end_time;
 static int infile;
 /* line number for error messages */
 static unsigned long lineno = 0;
+/* offset for time values (what mktime(3) makes of 2000-01-01 00:00:00)
+   used to make timestamps independent of local time and broken mktime */
+static time_t epoch;
 
 /* a version of strcpy that handles overlapping strings well */
 static char *overlap_strcpy(char *dest, const char *src) {
@@ -134,7 +137,7 @@ static log_type to_log_type(const char* s) {
 
 const char * parse_time(const char *source, struct timeval *dest) {
 	int i;
-	struct tm tm;
+	static struct tm tm;  /* initialize with zeros */
 	char s[24] = { '\0' };  /* modifiable copy of source */
 	static char errmsg[BUFLEN];
 	/* format of timestamp part */
@@ -184,7 +187,7 @@ const char * parse_time(const char *source, struct timeval *dest) {
 	tm.tm_isdst = 0;  /* ignore daylight savings time */
 
 	if (dest) {
-		dest->tv_sec  = mktime(&tm);
+		dest->tv_sec  = mktime(&tm) - epoch;
 		dest->tv_usec = atoi(s + 20) * 1000;
 	}
 
@@ -1070,6 +1073,7 @@ static int parse_bind_args(char *** const result, char *line) {
 }
 
 int parse_provider_init(const char *in, int parse_csv, const char *begin, const char *end) {
+	static struct tm tm;  /* initialize with zeros */
 	int rc = 1;
 
 	debug(3, "Entering parse_provider_init%s\n", "");
@@ -1086,6 +1090,16 @@ int parse_provider_init(const char *in, int parse_csv, const char *begin, const 
 	csv = parse_csv;
 	start_time = begin;
 	end_time = end;
+
+	/* initialize epoch with 2000-01-01 00:00:00 */
+	tm.tm_year  = 2000 - 1900;
+	tm.tm_mon   = 1 - 1;
+	tm.tm_mday  = 1;
+	tm.tm_hour  = 0;
+	tm.tm_min   = 0;
+	tm.tm_sec   = 0;
+	tm.tm_isdst = 0;  /* ignore daylight savings time */
+	epoch = mktime(&tm);
 
 	debug(3, "Leaving parse_provider_init%s\n", "");
 

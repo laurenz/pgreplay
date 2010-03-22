@@ -40,7 +40,7 @@ pgreplay needs PostgreSQL 8.0 or better.
 
 It is supposed to compile without warnings and run on all platforms
 supported by PostgreSQL.
-Since I only got to test it on Linux, AIX and Windows, there may be
+Since I only got to test it on Linux, AIX, FreeBSD and Windows, there may be
 problems with other platforms. I am interested in reports and fixes for
 these platforms.
 
@@ -163,7 +163,7 @@ byte order.
 
 Each record in the replay file corresponds to one database operation
 and is constructed as follows:
-- 4-byte unsigned int: log file timestamp in seconds since the epoch
+- 4-byte unsigned int: log file timestamp in seconds since 2000-01-01
 - 4-byte unsigned int: fractional part of log file timestamp in microseconds
 - 8-byte unsigned int: session id
 - 1-byte unsigned int: type of the database action:
