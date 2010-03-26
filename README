@@ -146,6 +146,44 @@ This leads to some limitations:
 Implementation details
 ======================
 
+pgreplay will track the "session ID" associated with each log entry (the
+session ID uniquely identifies a database connection).
+For each new session ID, a new database connection will be opened during
+replay.  Each statement will be sent on the corresponding connection, so
+transactions are preserved and concurrent sessions cannot get in each
+other's way.
+
+The order of statements in the log file is strictly preserved, so there
+cannot be any race conditions caused by different execution speeds on
+separate connections.  On the other hand, that means that long running
+queries on one connection may stall execution on concurrent connections,
+but that's all you can get if you want to reproduce the exact same
+workload on a system that behaves differently.
+
+As an example, consider this (simplified) log file:
+
+session 1|connect
+session 2|connect
+session 1|statement: BEGIN
+session 1|statement: SELECT something(1)
+session 2|statement: BEGIN
+session 2|statement: SELECT something(2)
+session 1|statement: SELECT something(3)
+session 2|statement: ROLLBACK
+session 2|disconnect
+session 1|statement: COMMIT
+session 2|disconnect
+
+This will cause two database connections to be opened, so the ROLLBACK in
+session 2 will not affect session 1.
+If "SELECT something(2)" takes longer than expected (longer than it did in
+the original), that will not stall the execution of "SELECT something(3)"
+because it runs on a different connection.  The ROLLBACK, however, has to
+wait for the completion of the long statement.  Since the order of statements
+is preserved, the COMMIT on session 1 will have to wait until the ROLLBACK
+on session 2 has started (but it does not have to wait for the completion of
+the ROLLBACK).
+
 pgreplay is implemented in C and makes heavy use of asynchronous command
 processing (which is the reason why it is implemented in C).
 This way a single process can handle many concurrent connections, which
