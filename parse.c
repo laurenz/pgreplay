@@ -747,8 +747,9 @@ static void remove_all_pstmts(struct connection * conn) {
 #define MAX_TOKENS 3
 
 static int filter_bad_statements(char *line, struct connection *conn) {
-	char *statement = line, *p = line, token[MAX_TOKENS][NAMELEN + 1], *q = NULL;
-	int comment_depth, tokens = 0, ok = 1, i, nameindex;
+	char *statement = line, *p = line, token[MAX_TOKENS][NAMELEN + 1],
+		*q = NULL, *quote, *h;
+	int comment_depth, tokens = 0, ok = 1, i, nameindex, quotelen;
 
 	debug(3, "Entering filter_bad_statements%s\n", "");
 
@@ -804,6 +805,75 @@ static int filter_bad_statements(char *line, struct connection *conn) {
 				token[i][0] = '\0';
 			}
 			tokens = 0;
+		} else if ((('E' == *p) || ('e' == *p)) && ('\'' == p[1])) {
+			/* special string constant; skip to end */
+			while ('\0' != *(++p)) {
+				if ('\'' == *p) {
+					if ('\'' == p[1]) {
+						/* regular escaped apostrophe */
+						++p;
+					} else {
+						break;
+					}
+				}
+				if (('\\' == *p) && ('\'' == p[1])) {
+					/* backslash escaped apostrophe */
+					++p;
+				}
+			}
+			if ('\0' == *p) {
+				fprintf(stderr, "Error: string literal not closed in line %lu\n", lineno);
+				ok = 0;
+			} else {
+				++p;
+			}
+		} else if ('\'' == *p) {
+			/* simple string constant; skip to end */
+			while ('\0' != *(++p)) {
+				if ('\'' == *p) {
+					if ('\'' == p[1]) {
+						/* regular escaped apostrophe */
+						++p;
+					} else {
+						break;
+					}
+				}
+				if (BACKSLASH_QUOTE && ('\\' == *p) && ('\'' == p[1])) {
+					/* backslash escaped apostrophe */
+					++p;
+				}
+			}
+			if ('\0' == *p) {
+				fprintf(stderr, "Error: string literal not closed in line %lu\n"
+					"This probably means that you should change BACKSLASH_QUOTE in pgreplay.h and recompile\n", lineno);
+				ok = 0;
+			} else {
+				++p;
+			}
+		} else if ('$' == *p) {
+			/* dollar quoted string constant; skip to end */
+			quote = p++;
+			while (('$' != *p) && ('\0' != *p)) {
+				++p;
+			}
+			if ('\0' == *p) {
+				fprintf(stderr, "Error: end of dollar quote not found in line %lu\n", lineno);
+				ok = 0;
+			} else {
+				quotelen = p - quote;
+				*p = '\0';
+				h = p;
+				do {
+					h = strstr(++h, quote);
+				} while ((NULL != h) && ('$' != *(h + quotelen)));
+				*p = '$';
+				if (NULL == h) {
+					fprintf(stderr, "Error: end of dollar quoted string found in line %lu\n", lineno);
+					ok = 0;
+				} else {
+					p = h + (quotelen + 1);
+				}
+			}
 		} else if (('-' == *p) && ('-' == p[1])) {
 			/* comment; skip to end of line or statement */
 			while (('\n' != *p) && ('\0' != *p)) {

@@ -1,0 +1,16 @@
+Version 1.0.0
+
+Bugfixes:
+- Use "=" instead of "==" in "test" comparisons in configure.
+  This improves portability.
+- Change replay file timestamp to seconds after midnight of 2000-01-01
+  in local time.  This makes the replay file format independent of time zones 
+  and avoids problems with mktime(3) implementations that don't like
+  the UNIX epoch.
+- Ignore string literals in filter_bad_statements during log file parsing.
+  This keeps the function from getting confused by the contents of the
+  string.  Discovered by Josh Berkus.
+
+Version 0.9.0  Mar 19 2010
+
+- first release

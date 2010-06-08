@@ -105,6 +105,10 @@ extern replay_item * const end_item;
 /* defined in parse.c */
 /**********************/
 
+/* set to 0 if backslashes in simple string literals escape the following
+   single quote (e.g., if you have standard_conforming_strings=on */
+#define BACKSLASH_QUOTE 1
+
 /* parse a timestamp (excluding time zone) */
 extern const char * parse_time(const char *, struct timeval *);
 
