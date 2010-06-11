@@ -377,6 +377,7 @@ int database_consumer(replay_item *item) {
 		}
 	}
 
+	/* time when the statement originally ran */
 	stmt_time = replay_get_time(item);
 
 	/* set first_stmt_time if it is not yet set */
@@ -397,7 +398,10 @@ int database_consumer(replay_item *item) {
 
 	/* determine if statement should already be consumed, sleep if necessary */
 	if (-1 != rc) {
-		/* calculate delta until item should be replayed */
+		/* calculate "target time" when item should be replayed:
+		                        statement time - first statement time
+		   program start time + -------------------------------------
+		                                    replay factor            */
 
 		/* timestamp of the statement */
 		target_time.tv_sec = stmt_time->tv_sec;
@@ -449,7 +453,7 @@ int database_consumer(replay_item *item) {
 				all_idle) {
 			/* sleep if all is idle and the target time is in the future */
 
-			/* calculate time to sleep */
+			/* calculate time to sleep (delta = target_time - now) */
 			if (target_time.tv_usec > now.tv_usec) {
 				delta.tv_sec = target_time.tv_sec - now.tv_sec;
 				delta.tv_usec = target_time.tv_usec - now.tv_usec;
