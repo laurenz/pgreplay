@@ -8,7 +8,7 @@ else
 fi
 
 echo "Testing stderr log parsing ... "
-../pgreplay -f -o parse_err.rf -b '2010-03-02 15:33:53.676' -e '2010-03-02 15:34:30.988' errlog >parse_err.out 2>parse_err.err
+../pgreplay -f -o parse_err.rf -b '2010-12-31 10:59:52.241' -e '2010-12-31 11:00:30.005' errlog >parse_err.out 2>parse_err.err
 if [ $? -ne 0 ]; then
 	echo "command failed, error messages:"
 	cat parse_err.err
@@ -39,7 +39,7 @@ echo "ok"
 rm -f parse_err.rf parse_err.out parse_err.err parse_err.diff
 
 echo "Testing CSV log parsing ... "
-../pgreplay -f -c -o parse_csv.rf -b '2010-03-02 15:33:53.676' -e '2010-03-02 15:34:30.988' csvlog >parse_csv.out 2>parse_csv.err
+../pgreplay -f -c -o parse_csv.rf -b '2010-12-31 10:59:52.241' -e '2010-12-31 11:00:30.005' csvlog >parse_csv.out 2>parse_csv.err
 if [ $? -ne 0 ]; then
 	echo "command failed, error messages:"
 	cat parse_csv.err

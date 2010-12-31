@@ -1368,15 +1368,18 @@ replay_item * parse_provider() {
 
 	/* read and process the DETAIL message for a prepared statement */
 	if ((1 == status) && (pg_exec_prepared == type)) {
-		debug(2, "Reading bind arguments for prepared statement \"%s\"\n", name);
 
 		if (! detail) {
-			fprintf(stderr, "Error: no DETAIL for prepared statement at line %lu\n", lineno);
-			status = -1;
+			/* no DETAIL message --> statement has no parameters */
+			debug(2, "Prepared statement \"%s\" has no bind arguments\n", name);
+			if (NULL == (queue[1] = replay_create_exec_prepared(&time, session_id, name, 0, NULL))) {
+				status = -1;
+			}
 		} else if (strncmp(detail, "parameters: ", 12)) {
 			fprintf(stderr, "Error: no parameters for prepared statement at line %lu\n", lineno);
 			status = -1;
 		} else {
+			debug(2, "Reading bind arguments for prepared statement \"%s\"\n", name);
 			statement = detail + 12;
 			if (-1 == (count = parse_bind_args(&args, statement))) {
 				status = -1;
@@ -1384,9 +1387,7 @@ replay_item * parse_provider() {
 				if (NULL == (queue[1] = replay_create_exec_prepared(&time, session_id, name, count, args))) {
 					status = -1;
 				}
-				if (count > 0) {
-					free(args);
-				}
+				free(args);
 			}
 		}
 	}
