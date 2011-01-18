@@ -807,6 +807,7 @@ static int filter_bad_statements(char *line, struct connection *conn) {
 			tokens = 0;
 		} else if ((('E' == *p) || ('e' == *p)) && ('\'' == p[1])) {
 			/* special string constant; skip to end */
+			++p;
 			while ('\0' != *(++p)) {
 				if ('\'' == *p) {
 					if ('\'' == p[1]) {
