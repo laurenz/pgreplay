@@ -10,6 +10,8 @@ Bugfixes:
 - Ignore string literals in filter_bad_statements during log file parsing.
   This keeps the function from getting confused by the contents of the
   string.  Discovered by Josh Berkus.
+- Correctly handle prepared statements without parameters.
+  Discovered by Lipin Grisha.
 
 Version 0.9.0  Mar 19 2010
 
