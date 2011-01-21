@@ -50,19 +50,19 @@ static void help(FILE *f) {
 	fprintf(f, " The second form parses a PostgreSQL log file and writes the\n");
 	fprintf(f, "contents to a \"replay file\" that can be replayed with -r.\n");
 	fprintf(f, " The third form replays a file generated with -f.\n\n");
-    fprintf(f, "Parse options:\n");
-    fprintf(f, "   -c             (assume CSV logfile)\n");
-    fprintf(f, "   -b <timestamp> (start time for parsing logfile)\n");
-    fprintf(f, "   -e <timestamp> (end time for parsing logfile)\n\n");
-    fprintf(f, "Replay options:\n");
-    fprintf(f, "   -h <hostname>\n");
-    fprintf(f, "   -p <port>\n");
-    fprintf(f, "   -W <password>  (must be the same for all users)\n");
-    fprintf(f, "   -s <factor>    (speed factor for replay)\n");
-    fprintf(f, "   -E <encoding>  (server encoding)\n\n");
-    fprintf(f, "Debugging:\n");
-    fprintf(f, "   -d <level>     (level between 1 and 3)\n");
-    fprintf(f, "   -v             (prints version and exits)\n");
+	fprintf(f, "Parse options:\n");
+	fprintf(f, "   -c             (assume CSV logfile)\n");
+	fprintf(f, "   -b <timestamp> (start time for parsing logfile)\n");
+	fprintf(f, "   -e <timestamp> (end time for parsing logfile)\n\n");
+	fprintf(f, "Replay options:\n");
+	fprintf(f, "   -h <hostname>\n");
+	fprintf(f, "   -p <port>\n");
+	fprintf(f, "   -W <password>  (must be the same for all users)\n");
+	fprintf(f, "   -s <factor>    (speed factor for replay)\n");
+	fprintf(f, "   -E <encoding>  (server encoding)\n\n");
+	fprintf(f, "Debugging:\n");
+	fprintf(f, "   -d <level>     (level between 1 and 3)\n");
+	fprintf(f, "   -v             (prints version and exits)\n");
 }
 
 int main(int argc, char **argv) {
