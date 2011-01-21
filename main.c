@@ -14,6 +14,9 @@ extern char *optarg;
 
 int debug_level = 0;
 
+/* if 1, backslash will escape the following single quote in string literal */
+int backslash_quote = 0;
+
 /* wrapper for setenv, returns 0 on success and -1 on error */
 static int do_setenv(const char *name, const char *value) {
 	int rc;
@@ -53,7 +56,8 @@ static void help(FILE *f) {
 	fprintf(f, "Parse options:\n");
 	fprintf(f, "   -c             (assume CSV logfile)\n");
 	fprintf(f, "   -b <timestamp> (start time for parsing logfile)\n");
-	fprintf(f, "   -e <timestamp> (end time for parsing logfile)\n\n");
+	fprintf(f, "   -e <timestamp> (end time for parsing logfile)\n");
+	fprintf(f, "   -q             ( \\' in string literal is a single quote)\n\n");
 	fprintf(f, "Replay options:\n");
 	fprintf(f, "   -h <hostname>\n");
 	fprintf(f, "   -p <port>\n");
@@ -87,7 +91,7 @@ int main(int argc, char **argv) {
 
 	/* parse arguments */
 	opterr = 0;
-	while (-1 != (arg = getopt(argc, argv, "vfro:h:p:W:s:E:d:cb:e:"))) {
+	while (-1 != (arg = getopt(argc, argv, "vfro:h:p:W:s:E:d:cb:e:q"))) {
 		switch (arg) {
 			case 'f':
 				parse_only = 1;
@@ -203,6 +207,9 @@ int main(int argc, char **argv) {
 					help(stderr);
 					return 1;
 				}
+				break;
+			case 'q':
+				backslash_quote = 1;
 				break;
 			case '?':
 				if (('?' == optopt) || ('h' == optopt)) {

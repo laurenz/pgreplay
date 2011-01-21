@@ -823,7 +823,9 @@ static int filter_bad_statements(char *line, struct connection *conn) {
 				}
 			}
 			if ('\0' == *p) {
-				fprintf(stderr, "Error: string literal not closed in line %lu\n", lineno);
+				fprintf(stderr, "Error: string literal not closed near line %lu\n"
+					"Hint: retry with%s the -q option\n",
+					lineno, (backslash_quote ? "out" : ""));
 				ok = 0;
 			} else {
 				++p;
@@ -839,14 +841,15 @@ static int filter_bad_statements(char *line, struct connection *conn) {
 						break;
 					}
 				}
-				if (BACKSLASH_QUOTE && ('\\' == *p) && ('\'' == p[1])) {
+				if (backslash_quote && ('\\' == *p) && ('\'' == p[1])) {
 					/* backslash escaped apostrophe */
 					++p;
 				}
 			}
 			if ('\0' == *p) {
-				fprintf(stderr, "Error: string literal not closed in line %lu\n"
-					"This probably means that you should change BACKSLASH_QUOTE in pgreplay.h and recompile\n", lineno);
+				fprintf(stderr, "Error: string literal not closed near line %lu\n"
+					"Hint: retry with%s the -q option\n",
+					lineno, (backslash_quote ? "out" : ""));
 				ok = 0;
 			} else {
 				++p;

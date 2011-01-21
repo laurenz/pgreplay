@@ -86,6 +86,13 @@ An optional time zone part will be ignored.
 Only log entries less or equal to that timestamp will be parsed.
 The format is \fBYYYY-MM-DD HH:MM:SS.FFF\fR like in the log file.
 An optional time zone part will be ignored.
+.TP
+\fB-q\fR
+Specifies that a backslash in a simple string literal will escape
+the following single quote.
+This depends on configuration options like
+\fBstandard_conforming_strings\fR and is the default for server
+version 9.0 and less.
 .SS Replay options:
 .TP
 \fB-h\fR \fIhostname\fR

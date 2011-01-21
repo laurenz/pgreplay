@@ -61,6 +61,9 @@ typedef void (replay_item_consumer_finish)();
 
 extern int debug_level;
 
+/* if 1, backslash will escape the following single quote in string literal */
+extern int backslash_quote;
+
 /* print debug messages */
 #define debug(level, format, ...) { \
 	if (level <= debug_level) { \
@@ -104,10 +107,6 @@ extern replay_item * const end_item;
 /**********************/
 /* defined in parse.c */
 /**********************/
-
-/* set to 0 if backslashes in simple string literals do not escape the
-   following single quote (e.g. if standard_conforming_strings=on) */
-#define BACKSLASH_QUOTE 1
 
 /* parse a timestamp (excluding time zone) */
 extern const char * parse_time(const char *, struct timeval *);
