@@ -3,6 +3,11 @@
 
 #include "config.h"
 
+/* safeguard against broken config.h */
+#ifndef SIZEOF_UNSIGNED_INT
+#	error SIZEOF_UNSIGNED_INT not defined in config.h.  Please execute 'configure' first!
+#endif
+
 #if defined(WIN32) || defined(WIN64)
 #	ifndef WINDOWS
 #		define WINDOWS
