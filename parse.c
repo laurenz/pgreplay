@@ -248,7 +248,7 @@ static char * parse_session(const char *source, uint64_t *dest) {
 
 static char * read_log_line() {
 	char *line, buf[BUFLEN] = { '\0' }, *p;
-	int len, escaped = 0, nl_found = 0, line_size = 0;
+	int len, escaped = 0, nl_found = 0, line_size = 0, i, l;
 	ssize_t bytes_read;
 	/* this will contain stuff we have read from the file but not used yet */
 	static char peekbuf[BUFLEN] = { '\0' };
@@ -300,10 +300,15 @@ static char * read_log_line() {
 			/* look for unescaped newline */
 			if (!escaped && ('\n' == *p)) {
 				/* if a newline is found, truncate the string
-				   and store the rest in peekbuf */
-				strcpy(peekbuf, ++p);
+				   and prepend the rest to peekbuf */
+				l = strlen(++p);
+				/* right shift peekbuf by l */
+				for (i=peeklen; i>=0; --i) {
+					peekbuf[l+i] = peekbuf[i];
+				}
+				strncpy(peekbuf, p, l);
 				*p = '\0';
-				peeklen = len - (p - buf);
+				peeklen += len - (p - buf);
 				len = p - buf;
 				if (csv) {
 					/* for a CSV file, this must be the end of the log entry */
@@ -314,8 +319,8 @@ static char * read_log_line() {
 					   continuation line (newline + tab) */
 					/* first, make sure there is something to peek at */
 					if (0 == peeklen) {
-						/* try to read more from the file */
-						if (-1 == (bytes_read = read(infile, peekbuf + peeklen, BUFLEN - 1 - peeklen))) {
+						/* try to read one more byte from the file */
+						if (-1 == (bytes_read = read(infile, peekbuf, 1))) {
 							perror("Error reading from input file");
 							return NULL;
 						}
@@ -324,7 +329,8 @@ static char * read_log_line() {
 							nl_found = 1;
 							break;  /* out from the for loop */
 						} else {
-							peeklen += bytes_read;
+							peeklen = bytes_read;
+							peekbuf[peeklen] = '\0';
 						}
 					}
 					/* then check for a continuation tab */
@@ -341,6 +347,7 @@ static char * read_log_line() {
 							len += peeklen - 1;
 							peeklen = 0;
 						}
+						buf[len] = '\0';
 					} else {
 						/* end of log entry reached */
 						nl_found = 1;

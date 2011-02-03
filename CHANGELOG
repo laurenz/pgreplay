@@ -11,7 +11,9 @@ Bugfixes:
   This keeps the function from getting confused by the contents of the
   string.  Discovered by Josh Berkus.
 - Correctly handle prepared statements without parameters.
-  Discovered by Lipin Grisha.
+  Discovered by Grigorij Lipin.
+- Fix a corner case bug in read_log_line that can cause data corruption
+  when parsing a stderr log.  Discovered by Grigorij Lipin.
 
 Version 0.9.0  Mar 19 2010
 
