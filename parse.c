@@ -301,7 +301,7 @@ static char * read_log_line() {
 			if (!escaped && ('\n' == *p)) {
 				/* if a newline is found, truncate the string
 				   and prepend the rest to peekbuf */
-				l = strlen(++p);
+				l = len - (++p - buf);
 				/* right shift peekbuf by l */
 				for (i=peeklen; i>=0; --i) {
 					peekbuf[l+i] = peekbuf[i];
