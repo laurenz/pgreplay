@@ -69,7 +69,7 @@ static void ignore_notices(void *arg, const PGresult *res) {
 
 /* encapsulates "select" call and error handling */
 
-int do_select(int n, fd_set *rfds, fd_set *wfds, fd_set *xfds, struct timeval *timeout) {
+static int do_select(int n, fd_set *rfds, fd_set *wfds, fd_set *xfds, struct timeval *timeout) {
 	int rc;
 
 	rc = select(n, rfds, wfds, xfds, timeout);
