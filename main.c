@@ -14,6 +14,9 @@ extern char *optarg;
 
 int debug_level = 0;
 
+/* destination of statistics output */
+FILE *sf;
+
 /* if 1, backslash will escape the following single quote in string literal */
 int backslash_quote = 0;
 
@@ -259,6 +262,13 @@ int main(int argc, char **argv) {
 		if (-1 == do_setenv("PGCLIENTENCODING", encoding)) {
 			return 1;
 		}
+	}
+
+	/* figure out destination for statistics output */
+	if (parse_only && (NULL == outfilename)) {
+		sf = stderr;  /* because replay file will go to stdout */
+	} else {
+		sf = stdout;
 	}
 
 	/* configure main loop */

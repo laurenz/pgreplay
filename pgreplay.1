@@ -14,6 +14,8 @@ pgreplay \- PostgreSQL log file replayer for performance tests
 \fBpgreplay\fR reads a PostgreSQL log file (\fInot\fR a WAL file), extracts
 the SQL statements and executes them in the same order and relative time
 against a PostgreSQL database cluster.
+A final report gives you a useful statistical analysis of your workload
+and its execution.
 .P
 In the first form, the log file \fIinfile\fR is replayed at the time it is
 read.

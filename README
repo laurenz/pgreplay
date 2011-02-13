@@ -9,6 +9,9 @@ If the execution of statements gets behind schedule, warning messages
 are issued that indicate that the server cannot handle the load in a
 timely fashion.
 
+A final report gives you a useful statistical analysis of your workload
+and its execution.
+
 The idea is to replay a real-world database workload as exactly as possible.
 
 This is useful for performance tests, particularly in the following
@@ -23,6 +26,11 @@ Moreover, pgreplay can give you some feeling as to how your application
 *might* scale by allowing you to replay the workload at a different speed.
 Be warned, though, that 500 users working at double speed is not really
 the same as 1000 users working at normal speed.
+
+While pgreplay will find out if your database application will encounter
+performance problems, it does not provide a lot of help in the analysis of
+the cause of these problems.  Combine pgreplay with a specialized analysis
+program like pgFouine (http://pgfouine.projects.postgresql.org/) for that.
 
 As an additional feature, pgreplay lets you split the replay in two
 parts: you can parse the log file and create a "replay file", which

@@ -81,6 +81,15 @@ static unsigned long lineno = 0;
    used to make timestamps independent of local time and broken mktime */
 static time_t epoch;
 
+/* statistics */
+static unsigned long stat_simple = 0;     /* simple statements */
+static unsigned long stat_copy = 0;       /* copy statements */
+static unsigned long stat_param = 0;      /* parametrized statements */
+static unsigned long stat_named = 0;      /* different named statements */
+static unsigned long stat_execnamed = 0;  /* named statement executions */
+static unsigned long stat_fastpath = 0;   /* fast-path function calls */
+static unsigned long stat_cancel = 0;     /* cancel requests */
+
 /* a version of strcpy that handles overlapping strings well */
 static char *overlap_strcpy(char *dest, const char *src) {
 	register char c;
@@ -670,6 +679,9 @@ static int add_pstmt(struct connection * conn, char const *name) {
 	if ('\0' == *name) {
 		/* the empty statement will never be stored, but should be prepared */
 		rc = 1;
+
+		/* count for statistics */
+		++stat_param;
 	} else {
 		while (pstmt && strcmp(pstmt->name, name)) {
 			pstmt = pstmt->next;
@@ -695,7 +707,12 @@ static int add_pstmt(struct connection * conn, char const *name) {
 			pstmt->next = conn->statements;
 			conn->statements = pstmt;
 			rc = 1;
+
+			/* count for statistics */
+			++stat_named;
 		}
+		/* count for statistics */
+		++stat_execnamed;
 	}
 
 	debug(3, "Leaving add_pstmt%s\n", "");
@@ -768,6 +785,9 @@ static int filter_bad_statements(char *line, struct connection *conn) {
 		if (('\0' == *p) || (';' == *p)) {
 			/* end of a statement found */
 			if (tokens > 0) {
+				/* count parsed simple statements */
+				++stat_simple;
+
 				/* remove statements that won't work */
 
 				if (! strcmp("copy", token[0])) {
@@ -776,6 +796,9 @@ static int filter_bad_statements(char *line, struct connection *conn) {
 					while (statement < p) {
 						*(statement++) = ' ';
 					}
+
+					/* count for statistics */
+					++stat_copy;
 				} else if ((tokens > 1) && (! strcmp("set", token[0])) && (! strcmp("client_encoding", token[1]))) {
 					fprintf(stderr, "Warning: \"SET client_encoding\" statement ignored in line %lu\n", lineno);
 					/* replace statement with blanks */
@@ -1153,6 +1176,25 @@ static int parse_bind_args(char *** const result, char *line) {
 	return count;
 }
 
+static void print_parse_statistics() {
+	fprintf(sf, "\nParse statistics\n");
+	fprintf(sf, "================\n\n");
+	fprintf(sf, "Log lines read: %lu\n", lineno);
+	fprintf(sf, "Total SQL statements processed: %lu\n", stat_simple + stat_param + stat_execnamed);
+	fprintf(sf, "Simple SQL statements processed: %lu\n", stat_simple);
+	if (stat_copy) {
+		fprintf(sf, "(includes %lu ignored copy statements)\n", stat_copy);
+	}
+	fprintf(sf, "Parametrized SQL statements processed: %lu\n", stat_param);
+	fprintf(sf, "Named prepared SQL statements executions processed: %lu\n", stat_execnamed);
+	if (stat_named) {
+		fprintf(sf, "Different named prepared SQL statements processed: %lu\n", stat_named);
+		fprintf(sf, "(average reuse count %.3f)\n", (double)(stat_execnamed - stat_named) / stat_named);
+	}
+	fprintf(sf, "Cancel requests processed: %lu\n", stat_cancel);
+	fprintf(sf, "Fast-path function calls ignored: %lu\n", stat_fastpath);
+}
+
 int parse_provider_init(const char *in, int parse_csv, const char *begin, const char *end) {
 	static struct tm tm;  /* initialize with zeros */
 	int rc = 1;
@@ -1195,6 +1237,8 @@ void parse_provider_finish() {
 			perror("Error closing input file:");
 		}
 	}
+
+	print_parse_statistics();
 
 	debug(3, "Leaving parse_provider_finish%s\n", "");
 }
@@ -1282,6 +1326,9 @@ replay_item * parse_provider() {
 						free(detail);
 					}
 					fprintf(stderr, "Warning: fast-path function call ignored in line %lu\n", lineno);
+
+					/* count for statistics */
+					++stat_fastpath;
 				} else {
 					free(message);
 					if (! csv && detail) {
@@ -1369,6 +1416,10 @@ replay_item * parse_provider() {
 				if (NULL == (queue[0] = replay_create_cancel(&time, session_id))) {
 					status = -1;
 				}
+
+				/* count for statistics */
+				++stat_cancel;
+
 				break;
 			default:
 				/* can't happen */

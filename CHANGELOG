@@ -1,5 +1,9 @@
 Version 1.0.0
 
+Enhancements:
+- Calculate parse and execution statistics and display them at the end
+  of the run.
+
 Bugfixes:
 - Use "=" instead of "==" in "test" comparisons in configure.
   This improves portability.

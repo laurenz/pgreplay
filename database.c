@@ -44,24 +44,42 @@ typedef enum {
 
 /* linked list element for list of open connections */
 struct dbconn {
-	uint64_t      session_id;
-	PGconn        *db_conn;
-	int           socket;
-	connstatus    status;
-	struct dbconn *next;
+	uint64_t       session_id;
+	PGconn         *db_conn;
+	int            socket;
+	connstatus     status;
+	struct timeval session_start;
+	struct timeval stmt_start;
+	struct dbconn  *next;
 };
 
 /* linked list of open connections */
 static struct dbconn *connections = NULL;
 
-/* remember timestamp of program start */
+/* remember timestamp of program start and stop */
 static struct timeval start_time;
+static struct timeval stop_time;
 
 /* remember timestamp of first statement */
 static struct timeval first_stmt_time;
 
 /* maximum seconds behind schedule */
 static time_t secs_behind = 0;
+
+/* statistics */
+static struct timeval stat_exec = {0, 0};     /* SQL statement execution time */
+static struct timeval stat_session = {0, 0};  /* session duration total */
+static struct timeval stat_longstmt = {0, 0}; /* session duration total */
+static unsigned long stat_stmt = 0;           /* number of SQL statements */
+static unsigned long stat_prep = 0;           /* number of preparations */
+static unsigned long stat_errors = 0;         /* unsuccessful SQL statements */
+static unsigned long stat_actions = 0;        /* client-server interactions */
+static unsigned long stat_statements = 0;     /* number of concurrent statements */
+static unsigned long stat_stmtmax = 0;        /* maximum concurrent statements */
+static unsigned long stat_sesscnt = 0;        /* total number of sessions */
+static unsigned long stat_sessions = 0;       /* number of concurrent sessions */
+static unsigned long stat_sessmax = 0;        /* maximum concurrent sessions */
+static unsigned long stat_hist[5] = {0, 0, 0, 0, 0};  /* duration histogram */
 
 /* processes (ignores) notices from the server */
 static void ignore_notices(void *arg, const PGresult *res) {
@@ -108,6 +126,67 @@ static int do_sleep(struct timeval *delta) {
 #else
 	return do_select(0, NULL, NULL, NULL, delta);
 #endif
+}
+
+static void print_replay_statistics() {
+	double runtime, session_time, busy_time;
+	struct timeval delta;
+
+	fprintf(sf, "\nReplay statistics\n");
+	fprintf(sf, "=================\n\n");
+
+	/* calculate total run time */
+	delta.tv_sec = stop_time.tv_sec;
+	delta.tv_usec = stop_time.tv_usec;
+	/* subtract statement start time */
+	if (delta.tv_usec >= start_time.tv_usec) {
+		delta.tv_sec -= start_time.tv_sec;
+		delta.tv_usec -= start_time.tv_usec;
+	} else {
+		delta.tv_sec -= start_time.tv_sec + 1;
+		delta.tv_usec += 1000000 - start_time.tv_usec;
+	}
+	runtime = delta.tv_usec / 1000000.0 + delta.tv_sec;
+	/* calculate total busy time */
+	busy_time = stat_exec.tv_usec / 1000000.0 + stat_exec.tv_sec;
+	/* calculate total session time */
+	session_time = stat_session.tv_usec / 1000000.0 + stat_session.tv_sec;
+
+	fprintf(sf, "Spaad factor for replay: %.3f\n", replay_factor);
+	fprintf(sf, "Total run time in seconds: %.3f\n", runtime);
+	fprintf(sf, "Maximum lag behind schedule: %lu seconds\n", (unsigned long) secs_behind);
+	fprintf(sf, "Calls to the server: %lu\n", stat_actions);
+	if (runtime > 0.0) {
+		fprintf(sf, "(%.3f calls per second)\n", stat_actions / runtime);
+	}
+
+	fprintf(sf, "Total number of connections: %lu\n", stat_sesscnt);
+	fprintf(sf, "Maximum number of concurrent connections: %lu\n", stat_sessmax);
+	if (runtime > 0.0) {
+		fprintf(sf, "Average number of concurrent connections: %.3f\n", session_time / runtime);
+	}
+	if (session_time > 0.0) {
+		fprintf(sf, "Average session idle percentage: %.3f%%\n", 100.0 * (session_time - busy_time) / session_time);
+	}
+
+	fprintf(sf, "SQL statements executed: %lu\n", stat_stmt - stat_prep);
+	if (stat_stmt > stat_prep) {
+		fprintf(sf, "(%lu or %.3f%% of these completed with error)\n",
+			stat_errors, (100.0 * stat_errors) / (stat_stmt - stat_prep));
+		fprintf(sf, "Maximum number of concurrent SQL statements: %lu\n", stat_stmtmax);
+		if (runtime > 0.0) {
+			fprintf(sf, "Average number of concurrent SQL statements: %.3f\n", busy_time / runtime);
+		}
+		fprintf(sf, "Average SQL statement duration: %.3f seconds\n", busy_time / stat_stmt);
+		fprintf(sf, "Maximum SQL statement duration: %.3f seconds\n",
+			stat_longstmt.tv_sec + stat_longstmt.tv_usec / 1000000.0);
+		fprintf(sf, "Statement duration histogram:\n");
+		fprintf(sf, "  0    to 0.02 seconds: %.3f%%\n", 100.0 * stat_hist[0] / stat_stmt);
+		fprintf(sf, "  0.02 to 0.1  seconds: %.3f%%\n", 100.0 * stat_hist[1] / stat_stmt);
+		fprintf(sf, "  0.1  to 0.5  seconds: %.3f%%\n", 100.0 * stat_hist[2] / stat_stmt);
+		fprintf(sf, "  0.5  to 2    seconds: %.3f%%\n", 100.0 * stat_hist[3] / stat_stmt);
+		fprintf(sf, "     over 2    seconds: %.3f%%\n", 100.0 * stat_hist[4] / stat_stmt);
+	}
 }
 	
 int database_consumer_init(const char *ignore, const char *host, int port, const char *passwd, double factor) {
@@ -222,6 +301,12 @@ void database_consumer_finish() {
 		fprintf(stderr, "Error: not all database connections closed\n");
 	}
 
+	if (-1 == gettimeofday(&stop_time, NULL)) {
+		perror("Error calling gettimeofday");
+	} else {
+		print_replay_statistics();
+	}
+
 	debug(3, "Leaving database_consumer_finish%s\n", "");
 }
 
@@ -240,6 +325,7 @@ int database_consumer(replay_item *item) {
 	const char *user, *database, *p;
 	PGcancel *cancel_request;
 	PGresult *result;
+	ExecStatusType result_status;
 
 	debug(3, "Entering database_consumer%s\n", "");
 
@@ -279,6 +365,19 @@ int database_consumer(replay_item *item) {
 							case PGRES_POLLING_OK:
 								debug(2, "Connection for session 0x" UINT64_FORMAT " established\n", conn->session_id);
 								conn->status = idle;
+
+								/* get session start time */
+								if (-1 == gettimeofday(&(conn->session_start), NULL)) {
+									perror("Error calling gettimeofday");
+									rc = -1;
+								}
+
+								/* count total and concurrent sessions */
+								++stat_sesscnt;
+								if (++stat_sessions > stat_sessmax) {
+									stat_sessmax = stat_sessions;
+								}
+
 								break;
 							default:
 								fprintf(stderr, "Connection for session 0x" UINT64_FORMAT " failed: %s\n", conn->session_id, PQerrorMessage(conn->db_conn));
@@ -341,10 +440,73 @@ int database_consumer(replay_item *item) {
 							if (! PQisBusy(conn->db_conn)) {
 								/* read and discard all results */
 								while (NULL != (result = PQgetResult(conn->db_conn))) {
+									/* count statements and errors for statistics */
+									++stat_stmt;
+									result_status = PQresultStatus(result);
+									if ((PGRES_EMPTY_QUERY != result_status)
+										&& (PGRES_COMMAND_OK != result_status)
+										&& (PGRES_TUPLES_OK != result_status)
+										&& (PGRES_NONFATAL_ERROR != result_status))
+									{
+										++stat_errors;
+									}
+
 									PQclear(result);
 								}
 
+								/* one less concurrent statement */
+								--stat_statements;
+
 								conn->status = idle;
+
+								/* remember execution time for statistics */
+								if (-1 == gettimeofday(&delta, NULL)) {
+									perror("Error calling gettimeofday");
+									rc = -1;
+								} else {
+									/* subtract statement start time */
+									if (delta.tv_usec >= conn->stmt_start.tv_usec) {
+										delta.tv_sec -= conn->stmt_start.tv_sec;
+										delta.tv_usec -= conn->stmt_start.tv_usec;
+									} else {
+										delta.tv_sec -= conn->stmt_start.tv_sec + 1;
+										delta.tv_usec += 1000000 - conn->stmt_start.tv_usec;
+									}
+
+									/* add to duration histogram */
+									if (0 == delta.tv_sec) {
+										if (20000 >= delta.tv_usec) {
+											++stat_hist[0];
+										} else if (100000 >= delta.tv_usec) {
+											++stat_hist[1];
+										} else if (500000 >= delta.tv_usec) {
+											++stat_hist[2];
+										} else {
+											++stat_hist[3];
+										}
+									} else if (2 >= delta.tv_sec) {
+										++stat_hist[3];
+									} else {
+										++stat_hist[4];
+									}
+
+									/* remember longest statement */
+									if ((delta.tv_sec > stat_longstmt.tv_sec)
+										|| ((delta.tv_sec == stat_longstmt.tv_sec)
+											&& (delta.tv_usec > stat_longstmt.tv_usec)))
+									{
+										stat_longstmt.tv_sec = delta.tv_sec;
+										stat_longstmt.tv_usec = delta.tv_usec;
+									}
+
+									/* add to total */
+									stat_exec.tv_sec += delta.tv_sec;
+									stat_exec.tv_usec += delta.tv_usec;
+									if (stat_exec.tv_usec >= 1000000) {
+										++stat_exec.tv_sec;
+										stat_exec.tv_usec -= 1000000;
+									}
+								}
 							} else {
 								/* more to read */
 								all_idle = 0;
@@ -489,6 +651,9 @@ int database_consumer(replay_item *item) {
 
 	/* send statement */
 	if (1 == rc) {
+		/* count for statistics */
+		++stat_actions;
+
 		switch (type) {
 			case pg_connect:
 				debug(2, "Starting database connection for session 0x" UINT64_FORMAT "\n", replay_get_session_id(item));
@@ -582,6 +747,32 @@ int database_consumer(replay_item *item) {
 
 				PQfinish(found_conn->db_conn);
 
+				/* remember session duration for statistics */
+				if (-1 == gettimeofday(&delta, NULL)) {
+					perror("Error calling gettimeofday");
+					rc = -1;
+				} else {
+					/* subtract session start time */
+					if (delta.tv_usec >= found_conn->session_start.tv_usec) {
+						delta.tv_sec -= found_conn->session_start.tv_sec;
+						delta.tv_usec -= found_conn->session_start.tv_usec;
+					} else {
+						delta.tv_sec -= found_conn->session_start.tv_sec + 1;
+						delta.tv_usec += 1000000 - found_conn->session_start.tv_usec;
+					}
+
+					/* add to total */
+					stat_session.tv_sec += delta.tv_sec;
+					stat_session.tv_usec += delta.tv_usec;
+					if (stat_session.tv_usec >= 1000000) {
+						++stat_session.tv_sec;
+						stat_session.tv_usec -= 1000000;
+					}
+				}
+
+				/* one less concurrent session */
+				--stat_sessions;
+
 				/* remove struct dbconn from linked list */
 				if (prev_conn) {
 					prev_conn->next = found_conn->next;
@@ -603,6 +794,9 @@ int database_consumer(replay_item *item) {
 				break;
 			case pg_prepare:
 				debug(2, "Sending prepare request on session 0x" UINT64_FORMAT "\n", replay_get_session_id(item));
+
+				/* count preparations for statistics */
+				++stat_prep;
 
 				if (! PQsendPrepare(
 						found_conn->db_conn,
@@ -667,6 +861,17 @@ int database_consumer(replay_item *item) {
 			default:
 				fprintf(stderr, "Error flushing to database: %s\n", PQerrorMessage(found_conn->db_conn));
 				rc = -1;
+		}
+
+		/* get statement start time */
+		if (-1 == gettimeofday(&(found_conn->stmt_start), NULL)) {
+			perror("Error calling gettimeofday");
+			rc = -1;
+		}
+
+		/* count concurrent statements */
+		if (++stat_statements > stat_stmtmax) {
+			stat_stmtmax = stat_statements;
 		}
 	}
 

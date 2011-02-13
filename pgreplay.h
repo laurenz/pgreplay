@@ -66,6 +66,9 @@ typedef void (replay_item_consumer_finish)();
 
 extern int debug_level;
 
+/* destination of statistics output */
+extern FILE *sf;
+
 /* if 1, backslash will escape the following single quote in string literal */
 extern int backslash_quote;
 
