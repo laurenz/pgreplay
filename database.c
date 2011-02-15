@@ -152,7 +152,7 @@ static void print_replay_statistics() {
 	/* calculate total session time */
 	session_time = stat_session.tv_usec / 1000000.0 + stat_session.tv_sec;
 
-	fprintf(sf, "Spaad factor for replay: %.3f\n", replay_factor);
+	fprintf(sf, "Speed factor for replay: %.3f\n", replay_factor);
 	fprintf(sf, "Total run time in seconds: %.3f\n", runtime);
 	fprintf(sf, "Maximum lag behind schedule: %lu seconds\n", (unsigned long) secs_behind);
 	fprintf(sf, "Calls to the server: %lu\n", stat_actions);
