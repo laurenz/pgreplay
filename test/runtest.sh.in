@@ -22,9 +22,10 @@ if [ $? -ne 0 ]; then
 	rm -f parse_err.rf parse_err.out parse_err.err parse_err.diff
 	exit 1
 fi
-if [ -s parse_err.out ]; then
-	echo "unexpected output:"
-	cat parse_err.out
+diff -b parse_err.out parse_err_out.exp >parse_err.diff
+if [ $? -ne 0 ]; then
+	echo "unexpected output, difference to expected:"
+	cat parse_err.diff
 	rm -f parse_err.rf parse_err.out parse_err.err parse_err.diff
 	exit 1
 fi
@@ -53,9 +54,10 @@ if [ $? -ne 0 ]; then
 	rm -f parse_csv.rf parse_csv.out parse_csv.err parse_csv.diff
 	exit 1
 fi
-if [ -s parse_csv.out ]; then
-	echo "unexpected output:"
-	cat parse_csv.out
+diff -b parse_csv.out parse_csv_out.exp >parse_csv.diff
+if [ $? -ne 0 ]; then
+	echo "unexpected output, difference to expected:"
+	cat parse_csv.diff
 	rm -f parse_csv.rf parse_csv.out parse_csv.err parse_csv.diff
 	exit 1
 fi
@@ -77,7 +79,7 @@ if [ $? -ne 0 ]; then
 	echo "\"$PSQL\" -U postgres -d postgres -l"
 	exit 1
 fi
-../pgreplay -r -s 2 -E UTF8 -d 1 replayfile >replay.out 2>replay.err
+../pgreplay -r -s 2 -E UTF8 -d 1 replayfile 2>replay.err|sed '/^Replay statistics$/,$d' >replay.out
 if [ $? -ne 0 ]; then
 	echo "command failed, error messages:"
 	cat replay.err

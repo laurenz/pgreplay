@@ -1,0 +1,14 @@
+
+Parse statistics
+================
+
+Log lines read: 54
+Total SQL statements processed: 25
+Simple SQL statements processed: 19
+(includes 1 ignored copy statements)
+Parametrized SQL statements processed: 4
+Named prepared SQL statements executions processed: 2
+Different named prepared SQL statements processed: 1
+(average reuse count 1.000)
+Cancel requests processed: 1
+Fast-path function calls ignored: 5
