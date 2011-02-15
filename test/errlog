@@ -3,11 +3,11 @@
 2010-12-31 10:59:26.156 UTC|||4d1db78e.3eaa|LOG:  database system was shut down at 2010-12-31 10:49:53 UTC
 2010-12-31 10:59:26.177 UTC|||4d1db78e.3ea8|LOG:  database system is ready to accept connections
 2010-12-31 10:59:26.192 UTC|||4d1db78e.3eb5|LOG:  autovacuum launcher started
-2010-12-31 10:59:51.733 UTC|[unknown]|[unknown]|4d1db7a7.4227|LOG:  connection received: host=[local]
+2010-12-31 10:59:51.733 UTC|[unknown]|[unknown]|4d1db7a8.4227|LOG:  connection received: host=[local]
 2010-12-31 10:59:52.235 UTC|[unknown]|[unknown]|4d1db7a8.4236|LOG:  connection received: host=[local]
 2010-12-31 10:59:52.236 UTC|postgres|postgres|4d1db7a8.4236|LOG:  connection authorized: user=postgres database=postgres
 2010-12-31 10:59:52.241 UTC|postgres|postgres|4d1db7a8.4236|LOG:  statement: set client_encoding to 'UTF8'
-2010-12-31 10:59:52.241 UTC|postgres|postgres|4d1db7a7.4227|LOG:  connection authorized: user=postgres database=postgres
+2010-12-31 10:59:52.241 UTC|postgres|postgres|4d1db7a8.4227|LOG:  connection authorized: user=postgres database=postgres
 2010-12-31 10:59:52.243 UTC|postgres|postgres|4d1db7a8.4227|LOG:  statement: set client_encoding to 'LATIN9'
 2010-12-31 10:59:52.744 UTC|postgres|postgres|4d1db7a8.4236|LOG:  statement: CREATE TABLE runtest(
 	   id integer PRIMARY KEY,

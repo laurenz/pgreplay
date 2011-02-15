@@ -165,5 +165,11 @@ with the \fB-E\fR switch of \fBpgreplay\fR), all
 Since the preparation time of prepared statements is not logged (unless
 \fBlog_min_messages\fR is \fBdebug2\fR or more), these statements will be
 prepared immediately before they are first executed during replay.
+.TP 4
+*
+Sometimes, if a connection takes longer to complete, the session ID
+unexpectedly changes in the PostgreSQL log file. This causes \fBpgreplay\fR
+to treat the session as two different ones, resulting in an additional
+connection. This is arguably a bug in PostgreSQL.
 .SH AUTHOR
 Written by Laurenz Albe \fB<laurenz.albe@wien.gv.at>\fR.

@@ -1,5 +1,5 @@
 <!-- Creator     : groff version 1.19.2 -->
-<!-- CreationDate: Sun Feb 13 12:29:09 2011 -->
+<!-- CreationDate: Tue Feb 15 11:02:23 2011 -->
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
 "http://www.w3.org/TR/html4/loose.dtd">
 <html>
@@ -386,6 +386,22 @@ preparation time of prepared statements is not logged
 (unless <b>log_min_messages</b> is <b>debug2</b> or more),
 these statements will be prepared immediately before they
 are first executed during replay.</p></td>
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="1%">
+
+
+<p style="margin-top: 1em" valign="top">*</p></td>
+<td width="5%"></td>
+<td width="83%">
+
+
+<p style="margin-top: 1em" valign="top">Sometimes, if a
+connection takes longer to complete, the session ID
+unexpectedly changes in the PostgreSQL log file. This causes
+<b>pgreplay</b> to treat the session as two different ones,
+resulting in an additional connection. This is arguably a
+bug in PostgreSQL.</p></td>
 </table>
 
 <a name="AUTHOR"></a>
