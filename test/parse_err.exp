@@ -7,3 +7,4 @@ Warning: fast-path function call ignored in line 48
 Warning: fast-path function call ignored in line 49
 Warning: fast-path function call ignored in line 50
 Warning: fast-path function call ignored in line 52
+Found memory dump in line 57, skipping

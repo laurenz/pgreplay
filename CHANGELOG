@@ -18,6 +18,8 @@ Bugfixes:
   Discovered by Grigorij Lipin.
 - Fix a corner case bug in read_log_line that can cause data corruption
   when parsing a stderr log.  Discovered by Grigorij Lipin.
+- Skip memory dumps in stderr log caused by "out of memory" errors
+  instead of gagging on them.  Discovered by Grigorij Lipin.
 
 Version 0.9.0  Mar 19 2010
 

@@ -54,6 +54,129 @@
 2010-12-31 11:00:28.486 UTC|[unknown]|[unknown]|4d1db7cc.4bd1|LOG:  connection received: host=[local]
 2010-12-31 11:00:28.486 UTC|postgres|postgres|4d1db7a8.4227|ERROR:  canceling statement due to user request
 2010-12-31 11:00:28.486 UTC|postgres|postgres|4d1db7a8.4227|STATEMENT:  SELECT pg_sleep(10)
+TopMemoryContext: 101672 total in 12 blocks; 5232 free (18 chunks); 96440 used
+  TopTransactionContext: 8192 total in 1 blocks; 7840 free (1 chunks); 352 used
+  RI compare cache: 8192 total in 1 blocks; 1800 free (0 chunks); 6392 used
+  RI query cache: 8192 total in 1 blocks; 5968 free (0 chunks); 2224 used
+  PL/PgSQL function context: 8192 total in 1 blocks; 4392 free (3 chunks); 3800 used
+  CFuncHash: 8192 total in 1 blocks; 4936 free (0 chunks); 3256 used
+  Rendezvous variable hash: 8192 total in 1 blocks; 3848 free (0 chunks); 4344 used
+  PLpgSQL function cache: 24328 total in 2 blocks; 5904 free (0 chunks); 18424 used
+  Operator lookup cache: 24576 total in 2 blocks; 14072 free (6 chunks); 10504 used
+  Type information cache: 8192 total in 1 blocks; 1800 free (0 chunks); 6392 used
+  Operator class cache: 8192 total in 1 blocks; 3848 free (0 chunks); 4344 used
+  MessageContext: 1048576 total in 8 blocks; 152400 free (5 chunks); 896176 used
+  smgr relation table: 24576 total in 2 blocks; 14016 free (4 chunks); 10560 used
+  TransactionAbortContext: 32768 total in 1 blocks; 32752 free (0 chunks); 16 used
+  Portal hash: 8192 total in 1 blocks; 3912 free (0 chunks); 4280 used
+  PortalMemory: 8192 total in 1 blocks; 8040 free (0 chunks); 152 used
+    PortalHeapMemory: 1024 total in 1 blocks; 896 free (0 chunks); 128 used
+      ExecutorState: 336608 total in 15 blocks; 121648 free (6 chunks); 214960 used
+        ExecutorState: 205536 total in 14 blocks; 2360 free (0 chunks); 203176 used
+          HashTableContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+            HashBatchContext: 265281560 total in 55 blocks; 1272 free (54 chunks); 265280288 used
+          TupleSort: 24600 total in 2 blocks; 7520 free (0 chunks); 17080 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          AggContext: 8192 total in 1 blocks; 8104 free (0 chunks); 88 used
+            TupleHashTable: 1040384 total in 7 blocks; 509688 free (20 chunks); 530696 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          AggContext: 8192 total in 1 blocks; 8104 free (0 chunks); 88 used
+            TupleHashTable: 516096 total in 6 blocks; 250632 free (20 chunks); 265464 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          AggContext: 8192 total in 1 blocks; 8104 free (0 chunks); 88 used
+            TupleHashTable: 57344 total in 3 blocks; 23096 free (7 chunks); 34248 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          AggContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          AggContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          AggContext: 8192 total in 1 blocks; 8104 free (0 chunks); 88 used
+            TupleHashTable: 8192 total in 1 blocks; 5968 free (0 chunks); 2224 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          AggContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          AggContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+        HashTableContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          HashBatchContext: 4218904 total in 10 blocks; 2095528 free (4 chunks); 2123376 used
+        HashTableContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          HashBatchContext: 346021912 total in 51 blocks; 7186632 free (49 chunks); 338835280 used
+        HashTableContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          HashBatchContext: 84402200 total in 20 blocks; 1954616 free (18 chunks); 82447584 used
+        HashTableContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          HashBatchContext: 346021912 total in 51 blocks; 7186632 free (49 chunks); 338835280 used
+        HashTableContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          HashBatchContext: 379576344 total in 55 blocks; 930760 free (53 chunks); 378645584 used
+        HashTableContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+          HashBatchContext: 287301656 total in 44 blocks; 1741296 free (40 chunks); 285560360 used
+        TupleSort: 24600 total in 2 blocks; 7304 free (0 chunks); 17296 used
+        TupleSort: 226484248 total in 29 blocks; 2721880 free (22 chunks); 223762368 used
 2010-12-31 11:00:29.489 UTC|postgres|postgres|4d1db7a8.4236|LOG:  statement: DROP TABLE runtest
 2010-12-31 11:00:30.005 UTC|postgres|postgres|4d1db7a8.4236|LOG:  disconnection: session time: 0:00:37.770 user=postgres database=postgres host=[local]
 2010-12-31 11:00:30.506 UTC|postgres|postgres|4d1db7a8.4227|LOG:  disconnection: session time: 0:00:38.773 user=postgres database=postgres host=[local]
