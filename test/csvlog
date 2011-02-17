@@ -16,6 +16,9 @@
    b bytea
 )",,,,,,,,
 2010-12-31 10:59:53.308 UTC,"postgres","postgres",16935,"[local]",4d1db7a8.4227,4,"INSERT",2010-12-31 10:59:51 UTC,2/3,0,LOG,00000,"execute <unnamed>: INSERT INTO runtest (id, c, t, b) VALUES ($1, $2, $3, $4)","parameters: $1 = '1', $2 = 'ein ''€""', $3 = '2008-08-08 10:30:00+00', $4 = 'a\000b\011c'",,,,,,,
+2010-12-31 10:59:53.500 UTC,,,35001,"",4d5d5122.88b9,1,"",2011-02-17 16:47:30 UTC,,0,LOG,00000,"connection received: host=[local]",,,,,,,,
+2010-12-31 10:59:53.500 UTC,"hansi","postgres",35001,"[local]",4d5d5122.88b9,2,"authentication",2011-02-17 16:47:30 UTC,,0,LOG,00000,"connection authorized: user=hansi database=postgres",,,,,,,,
+2010-12-31 10:59:53.500 UTC,"hansi","postgres",35001,"[local]",4d5d5122.88b9,3,"startup",2011-02-17 16:47:30 UTC,3/1,0,FATAL,28000,"role ""hansi"" does not exist",,,,,,,,
 2010-12-31 10:59:53.827 UTC,,,16962,"",4d1db7a9.4242,1,"",2010-12-31 10:59:53 UTC,,0,LOG,00000,"connection received: host=[local]",,,,,,,,
 2010-12-31 10:59:53.827 UTC,"postgres","postgres",16962,"[local]",4d1db7a9.4242,2,"authentication",2010-12-31 10:59:53 UTC,,0,LOG,00000,"connection authorized: user=postgres database=postgres",,,,,,,,
 2010-12-31 10:59:53.829 UTC,"postgres","postgres",16962,"[local]",4d1db7a9.4242,3,"idle",2010-12-31 10:59:53 UTC,3/2,0,LOG,00000,"statement: set client_encoding to 'UTF8'",,,,,,,,

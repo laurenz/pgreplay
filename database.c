@@ -39,7 +39,8 @@ typedef enum {
 	conn_wait_write,
 	conn_wait_read,
 	wait_write,
-	wait_read
+	wait_read,
+	closed
 } connstatus;
 
 /* linked list element for list of open connections */
@@ -339,6 +340,7 @@ int database_consumer(replay_item *item) {
 		/* handle each connection according to status */
 		switch(conn->status) {
 			case idle:
+			case closed:
 				break;  /* nothing to do */
 
 			case conn_wait_read:
@@ -379,6 +381,21 @@ int database_consumer(replay_item *item) {
 								}
 
 								break;
+							case PGRES_POLLING_FAILED:
+								/* If the connection fails because of a
+								   FATAL error from the server, mark
+								   connection "closed" and keep going.
+								   The same thing probably happened in the
+								   original run.
+								   PostgreSQL logs no disconnection for this.
+								*/
+								if (0 == strncmp(PQerrorMessage(conn->db_conn), "FATAL: ", 7)) {
+									debug(2, "Connection for session 0x" UINT64_FORMAT " failed with FATAL error\n", conn->session_id);
+									conn->status = closed;
+
+									break;
+								}
+								/* else fall through */
 							default:
 								fprintf(stderr, "Connection for session 0x" UINT64_FORMAT " failed: %s\n", conn->session_id, PQerrorMessage(conn->db_conn));
 								rc = -1;
@@ -634,11 +651,15 @@ int database_consumer(replay_item *item) {
 		} else if (((target_time.tv_sec < now.tv_sec) ||
 				((target_time.tv_sec == now.tv_sec) && (target_time.tv_usec <= now.tv_usec))) &&
 				((pg_connect == type) ||
+				((pg_disconnect == type) && (closed == found_conn->status)) ||
 				((pg_cancel == type) && (wait_read == found_conn->status)) ||
 				(idle == found_conn->status))) {
 			/* if the item is due and its connection is idle, consume it */
 			/* cancel items will also be consumed if the connection is waiting for a resonse */
 			rc = 1;
+		} else if (found_conn && (closed == found_conn->status)) {
+			fprintf(stderr, "Attempt to send server call on closed connection 0x" UINT64_FORMAT "\n", found_conn->session_id);
+			rc = -1;
 		} else {
 			/* item cannot be consumed yet, nap a little */
 			nap_time.tv_sec = 0;
@@ -743,35 +764,40 @@ int database_consumer(replay_item *item) {
 				}
 				break;
 			case pg_disconnect:
-				debug(2, "Disconnecting database connection for session 0x" UINT64_FORMAT "\n", replay_get_session_id(item));
-
-				PQfinish(found_conn->db_conn);
-
-				/* remember session duration for statistics */
-				if (-1 == gettimeofday(&delta, NULL)) {
-					perror("Error calling gettimeofday");
-					rc = -1;
+				/* dead connections need not be closed */
+				if (closed == found_conn->status) {
+					debug(2, "Removing closed session 0x" UINT64_FORMAT "\n", replay_get_session_id(item));
 				} else {
-					/* subtract session start time */
-					if (delta.tv_usec >= found_conn->session_start.tv_usec) {
-						delta.tv_sec -= found_conn->session_start.tv_sec;
-						delta.tv_usec -= found_conn->session_start.tv_usec;
+					debug(2, "Disconnecting database connection for session 0x" UINT64_FORMAT "\n", replay_get_session_id(item));
+	
+					PQfinish(found_conn->db_conn);
+	
+					/* remember session duration for statistics */
+					if (-1 == gettimeofday(&delta, NULL)) {
+						perror("Error calling gettimeofday");
+						rc = -1;
 					} else {
-						delta.tv_sec -= found_conn->session_start.tv_sec + 1;
-						delta.tv_usec += 1000000 - found_conn->session_start.tv_usec;
+						/* subtract session start time */
+						if (delta.tv_usec >= found_conn->session_start.tv_usec) {
+							delta.tv_sec -= found_conn->session_start.tv_sec;
+							delta.tv_usec -= found_conn->session_start.tv_usec;
+						} else {
+							delta.tv_sec -= found_conn->session_start.tv_sec + 1;
+							delta.tv_usec += 1000000 - found_conn->session_start.tv_usec;
+						}
+	
+						/* add to total */
+						stat_session.tv_sec += delta.tv_sec;
+						stat_session.tv_usec += delta.tv_usec;
+						if (stat_session.tv_usec >= 1000000) {
+							++stat_session.tv_sec;
+							stat_session.tv_usec -= 1000000;
+						}
 					}
-
-					/* add to total */
-					stat_session.tv_sec += delta.tv_sec;
-					stat_session.tv_usec += delta.tv_usec;
-					if (stat_session.tv_usec >= 1000000) {
-						++stat_session.tv_sec;
-						stat_session.tv_usec -= 1000000;
-					}
+	
+					/* one less concurrent session */
+					--stat_sessions;
 				}
-
-				/* one less concurrent session */
-				--stat_sessions;
 
 				/* remove struct dbconn from linked list */
 				if (prev_conn) {

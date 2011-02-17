@@ -17,6 +17,9 @@
 	)
 2010-12-31 10:59:53.308 UTC|postgres|postgres|4d1db7a8.4227|LOG:  execute <unnamed>: INSERT INTO runtest (id, c, t, b) VALUES ($1, $2, $3, $4)
 2010-12-31 10:59:53.308 UTC|postgres|postgres|4d1db7a8.4227|DETAIL:  parameters: $1 = '1', $2 = 'ein ''€"', $3 = '2008-08-08 10:30:00+00', $4 = 'a\000b\011c'
+2010-12-31 10:59:53.500 UTC|[unknown]|[unknown]|4d5d5122.88b9|LOG:  connection received: host=[local]
+2010-12-31 10:59:53.500 UTC|hansi|postgres|4d5d5122.88b9|LOG:  connection authorized: user=hansi database=postgres
+2010-12-31 10:59:53.500 UTC|hansi|postgres|4d5d5122.88b9|FATAL:  role "hansi" does not exist
 2010-12-31 10:59:53.827 UTC|[unknown]|[unknown]|4d1db7a9.4242|LOG:  connection received: host=[local]
 2010-12-31 10:59:53.827 UTC|postgres|postgres|4d1db7a9.4242|LOG:  connection authorized: user=postgres database=postgres
 2010-12-31 10:59:53.829 UTC|postgres|postgres|4d1db7a9.4242|LOG:  statement: set client_encoding to 'UTF8'

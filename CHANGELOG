@@ -20,6 +20,10 @@ Bugfixes:
   when parsing a stderr log.  Discovered by Grigorij Lipin.
 - Skip memory dumps in stderr log caused by "out of memory" errors
   instead of gagging on them.  Discovered by Grigorij Lipin.
+- Don't gag if a connection attempt results in a FATAL error during replay.
+  This can for example happen if max_connections has been exceeded or if a
+  non-existant user is specified with "trust" authentication.
+  Discovered by Grigorij Lipin.
 
 Version 0.9.0  Mar 19 2010
 

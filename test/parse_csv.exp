@@ -1,9 +1,9 @@
 Warning: "SET client_encoding" statement ignored in line 9
 Warning: "SET client_encoding" statement ignored in line 11
-Warning: "SET client_encoding" statement ignored in line 21
-Warning: COPY statement ignored in line 25
-Warning: fast-path function call ignored in line 40
-Warning: fast-path function call ignored in line 41
-Warning: fast-path function call ignored in line 42
+Warning: "SET client_encoding" statement ignored in line 24
+Warning: COPY statement ignored in line 28
 Warning: fast-path function call ignored in line 43
+Warning: fast-path function call ignored in line 44
 Warning: fast-path function call ignored in line 45
+Warning: fast-path function call ignored in line 46
+Warning: fast-path function call ignored in line 48
