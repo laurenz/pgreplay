@@ -397,7 +397,7 @@ static char * read_log_line() {
 static int parse_errlog_entry(struct timeval *time, char *user, char *database, uint64_t *session_id, log_type *type, char **message, char **detail) {
 	char *line = NULL, *part2, *part3, *part4, *part5, *part6;
 	const char *errmsg;
-	int i, read_dump = 0;;
+	int i, read_dump = 0;
 	/* if not NULL, contains the next log entry to parse */
 	static char* keepline = NULL;
 
