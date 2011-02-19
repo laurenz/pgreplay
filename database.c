@@ -460,6 +460,14 @@ int database_consumer(replay_item *item) {
 									/* count statements and errors for statistics */
 									++stat_stmt;
 									result_status = PQresultStatus(result);
+									debug(2, "Session 0x" UINT64_FORMAT " got got query response (%s)\n",
+										conn->session_id,
+										(PGRES_TUPLES_OK == result_status) ? "PGRES_TUPLES_OK" :
+										((PGRES_COMMAND_OK == result_status) ? "PGRES_COMMAND_OK" :
+										((PGRES_FATAL_ERROR == result_status) ? "PGRES_FATAL_ERROR" :
+										((PGRES_NONFATAL_ERROR == result_status) ? "PGRES_NONFATAL_ERROR" :
+										((PGRES_EMPTY_QUERY == result_status) ? "PGRES_EMPTY_QUERY" : "unexpected status")))));
+
 									if ((PGRES_EMPTY_QUERY != result_status)
 										&& (PGRES_COMMAND_OK != result_status)
 										&& (PGRES_TUPLES_OK != result_status)
@@ -882,7 +890,7 @@ int database_consumer(replay_item *item) {
 				found_conn->status = wait_read;
 				break;
 			case 1:
-				debug(2, "Will need to flush again%s\n", "");
+				debug(2, "Session 0x" UINT64_FORMAT " needs to flush again\n", found_conn->session_id);
 				break;
 			default:
 				fprintf(stderr, "Error flushing to database: %s\n", PQerrorMessage(found_conn->db_conn));
