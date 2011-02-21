@@ -390,7 +390,9 @@ int database_consumer(replay_item *item) {
 								   PostgreSQL logs no disconnection for this.
 								*/
 								if (0 == strncmp(PQerrorMessage(conn->db_conn), "FATAL: ", 7)) {
-									debug(2, "Connection for session 0x" UINT64_FORMAT " failed with FATAL error\n", conn->session_id);
+									debug(2, "Connection for session 0x" UINT64_FORMAT " failed with %s\n",
+										conn->session_id,
+										PQerrorMessage(conn->db_conn));
 									conn->status = closed;
 
 									break;
@@ -417,6 +419,7 @@ int database_consumer(replay_item *item) {
 						break;
 					case 1:
 						/* try PQflush again */
+						debug(2, "Session 0x" UINT64_FORMAT " flushing data\n", conn->session_id);
 						switch (PQflush(conn->db_conn)) {
 							case 0:
 								/* finished flushing all data */
@@ -425,7 +428,6 @@ int database_consumer(replay_item *item) {
 								break;
 							case 1:
 								/* more data to flush */
-								debug(2, "Session 0x" UINT64_FORMAT " needs to flush again\n", conn->session_id);
 								all_idle = 0;
 								break;
 							default:
