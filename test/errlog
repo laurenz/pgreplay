@@ -100,6 +100,8 @@ TopMemoryContext: 101672 total in 12 blocks; 5232 free (18 chunks); 96440 used
           ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
           ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
           ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
+2010-12-31 11:00:29.489 UTC|postgres|postgres|4d1db7a8.4236|LOG:  statement: DROP TABLE runtest
+2010-12-31 11:00:30.005 UTC|postgres|postgres|4d1db7a8.4236|LOG:  disconnection: session time: 0:00:37.770 user=postgres database=postgres host=[local]
           ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
           ExprContext: 0 total in 0 blocks; 0 free (0 chunks); 0 used
           AggContext: 8192 total in 1 blocks; 8104 free (0 chunks); 88 used
@@ -180,8 +182,6 @@ TopMemoryContext: 101672 total in 12 blocks; 5232 free (18 chunks); 96440 used
           HashBatchContext: 287301656 total in 44 blocks; 1741296 free (40 chunks); 285560360 used
         TupleSort: 24600 total in 2 blocks; 7304 free (0 chunks); 17296 used
         TupleSort: 226484248 total in 29 blocks; 2721880 free (22 chunks); 223762368 used
-2010-12-31 11:00:29.489 UTC|postgres|postgres|4d1db7a8.4236|LOG:  statement: DROP TABLE runtest
-2010-12-31 11:00:30.005 UTC|postgres|postgres|4d1db7a8.4236|LOG:  disconnection: session time: 0:00:37.770 user=postgres database=postgres host=[local]
 2010-12-31 11:00:30.506 UTC|postgres|postgres|4d1db7a8.4227|LOG:  disconnection: session time: 0:00:38.773 user=postgres database=postgres host=[local]
 2010-12-31 11:00:31.008 UTC|postgres|postgres|4d1db7a9.4242|LOG:  unexpected EOF on client connection
 2010-12-31 11:00:31.008 UTC|postgres|postgres|4d1db7a9.4242|LOG:  disconnection: session time: 0:00:37.180 user=postgres database=postgres host=[local]

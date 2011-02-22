@@ -397,7 +397,8 @@ static char * read_log_line() {
 static int parse_errlog_entry(struct timeval *time, char *user, char *database, uint64_t *session_id, log_type *type, char **message, char **detail) {
 	char *line = NULL, *part2, *part3, *part4, *part5, *part6;
 	const char *errmsg;
-	int i, read_dump = 0;
+	int i, skip_line = 0;
+	static int dump_found = 0;
 	/* if not NULL, contains the next log entry to parse */
 	static char* keepline = NULL;
 
@@ -421,18 +422,23 @@ static int parse_errlog_entry(struct timeval *time, char *user, char *database, 
 				return -1;
 			}
 
-			/* memory dump ends with a line that does not start with a space */
-			if (read_dump && (' ' != line[0])) {
-				read_dump = 0;  /* end of dump */
-			}
-
-			/* is it a memory dump? */
+			/* is it the start of a memory dump? */
 			if (0 == strncmp(line, "TopMemoryContext: ", 18)) {
-				fprintf(stderr, "Found memory dump in line %lu, skipping\n", lineno);
-				read_dump = 1;
+				fprintf(stderr, "Found memory dump in line %lu\n", lineno);
+				dump_found = 1;
+				skip_line = 1;
+			} else {
+				/* if there is a dump and the line starts blank,
+				   assume the line is part of the dump
+				*/
+				if (dump_found && (' ' == *line)) {
+					skip_line = 1;
+				} else {
+					skip_line = 0;
+				}
 			}
 		} while (('\0' != *line)
-			&& (read_dump
+			&& (skip_line
 				|| (start_time && (strncmp(line, start_time, 23) < 0))));
 	}
 
@@ -525,7 +531,6 @@ static int parse_errlog_entry(struct timeval *time, char *user, char *database, 
 	*message = line;
 
 	/* read the next log entry so that we can peek at it */
-	read_dump = 0;
 	line = NULL;
 	do {
 		if (NULL != line) {
@@ -537,17 +542,22 @@ static int parse_errlog_entry(struct timeval *time, char *user, char *database, 
 			return -1;
 		}
 
-		/* memory dump ends with a line that does not start with a space */
-		if (read_dump && (' ' != line[0])) {
-			read_dump = 0;  /* end of dump */
-		}
-
-		/* is it a memory dump? */
+		/* is it the start of a memory dump? */
 		if (0 == strncmp(line, "TopMemoryContext: ", 18)) {
-			fprintf(stderr, "Found memory dump in line %lu, skipping\n", lineno);
-			read_dump = 1;
+			fprintf(stderr, "Found memory dump in line %lu\n", lineno);
+			dump_found = 1;
+			skip_line = 1;
+		} else {
+			/* if there is a dump and the line starts blank,
+			   assume the line is part of the dump
+			*/
+			if (dump_found && (' ' == *line)) {
+				skip_line = 1;
+			} else {
+				skip_line = 0;
+			}
 		}
-	} while (('\0' != *line) && read_dump);
+	} while (('\0' != *line) && skip_line);
 
 	if ('\0' == *line) {
 		/* EOF, that's ok */
