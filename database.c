@@ -51,6 +51,7 @@ struct dbconn {
 	connstatus     status;
 	struct timeval session_start;
 	struct timeval stmt_start;
+	char           *errmsg;
 	struct dbconn  *next;
 };
 
@@ -389,11 +390,18 @@ int database_consumer(replay_item *item) {
 								   original run.
 								   PostgreSQL logs no disconnection for this.
 								*/
-								if (0 == strncmp(PQerrorMessage(conn->db_conn), "FATAL: ", 7)) {
-									debug(2, "Connection for session 0x" UINT64_FORMAT " failed with %s\n",
-										conn->session_id,
-										PQerrorMessage(conn->db_conn));
-									conn->status = closed;
+								p1 = PQerrorMessage(conn->db_conn);
+								if (0 == strncmp(p1, "FATAL:  ", 8)) {
+									p1 += 8;
+									if (NULL == (conn->errmsg = malloc(strlen(p1)))) {
+										fprintf(stderr, "Cannot allocate %lu bytes of memory\n", (unsigned long)strlen(p1));
+										rc = -1;
+									} else {
+										debug(2, "Connection for session 0x" UINT64_FORMAT " failed with FATAL error: %s\n",
+											conn->session_id, p1);
+										strcpy(conn->errmsg, p1);
+										conn->status = closed;
+									}
 
 									break;
 								}
@@ -668,7 +676,8 @@ int database_consumer(replay_item *item) {
 			/* cancel items will also be consumed if the connection is waiting for a resonse */
 			rc = 1;
 		} else if (found_conn && (closed == found_conn->status)) {
-			fprintf(stderr, "Attempt to send server call on closed connection 0x" UINT64_FORMAT "\n", found_conn->session_id);
+			fprintf(stderr, "Connection 0x" UINT64_FORMAT " failed with FATAL error: %s\n",
+				found_conn->session_id, found_conn->errmsg);
 			rc = -1;
 		} else {
 			/* item cannot be consumed yet, nap a little */
@@ -758,6 +767,7 @@ int database_consumer(replay_item *item) {
 
 									found_conn->session_id = replay_get_session_id(item);
 									found_conn->status = conn_wait_write;
+									found_conn->errmsg = NULL;
 									found_conn->next = connections;
 
 									connections = found_conn;
@@ -814,6 +824,9 @@ int database_consumer(replay_item *item) {
 					prev_conn->next = found_conn->next;
 				} else {
 					connections = found_conn->next;
+				}
+				if (found_conn->errmsg) {
+					free(found_conn->errmsg);
 				}
 				free(found_conn);
 
