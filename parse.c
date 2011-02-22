@@ -1268,7 +1268,9 @@ void parse_provider_finish() {
 		}
 	}
 
-	print_parse_statistics();
+	if (sf) {
+		print_parse_statistics();
+	}
 
 	debug(3, "Leaving parse_provider_finish%s\n", "");
 }

@@ -304,7 +304,7 @@ void database_consumer_finish() {
 
 	if (-1 == gettimeofday(&stop_time, NULL)) {
 		perror("Error calling gettimeofday");
-	} else {
+	} else if (sf) {
 		print_replay_statistics();
 	}
 

@@ -328,6 +328,11 @@ int main(int argc, char **argv) {
 		}
 	}
 
+	/* no statistics output if there was an error */
+	if (1 == rc) {
+		sf = NULL;
+	}
+
 	(*provider_finish)();
 	(*consumer_finish)();
 
