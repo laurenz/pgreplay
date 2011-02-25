@@ -167,6 +167,12 @@ Since the preparation time of prepared statements is not logged (unless
 prepared immediately before they are first executed during replay.
 .TP 4
 *
+Because the log file contains only text, query parameters and return values
+will always be in text and never in binary format. If you use binary mode to,
+say, transfer large binary data, \fBpgreplay\fR can cause significantly more
+network traffic than the original run.
+.TP 4
+*
 Sometimes, if a connection takes longer to complete, the session ID
 unexpectedly changes in the PostgreSQL log file. This causes \fBpgreplay\fR
 to treat the session as two different ones, resulting in an additional
