@@ -51,6 +51,9 @@ supported by PostgreSQL.
 Since I only got to test it on Linux, AIX, FreeBSD and Windows, there may be
 problems with other platforms. I am interested in reports and fixes for
 these platforms.
+On Windows, only the MinGW build environment is supported (I have no
+other compiler). That means that there is currently no 64-bit build
+for Windows (but a 32-bit executable should work fine anywhere).
 
 To build pgreplay, you will need the pg_config utility. If you installed
 PostgreSQL using installation packages, you will probably have to install
