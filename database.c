@@ -131,7 +131,8 @@ static int do_sleep(struct timeval *delta) {
 }
 
 static void print_replay_statistics() {
-	double runtime, session_time, busy_time;
+	int hours, minutes;
+	double seconds, runtime, session_time, busy_time;
 	struct timeval delta;
 
 	fprintf(sf, "\nReplay statistics\n");
@@ -149,13 +150,26 @@ static void print_replay_statistics() {
 		delta.tv_usec += 1000000 - start_time.tv_usec;
 	}
 	runtime = delta.tv_usec / 1000000.0 + delta.tv_sec;
+	/* calculate hours and minutes, subtract from delta */
+	hours = delta.tv_sec / 3600;
+	delta.tv_sec -= hours * 3600;
+	minutes = delta.tv_sec / 60;
+	delta.tv_sec -= minutes * 60;
+	seconds = delta.tv_usec / 1000000.0 + delta.tv_sec;
 	/* calculate total busy time */
 	busy_time = stat_exec.tv_usec / 1000000.0 + stat_exec.tv_sec;
 	/* calculate total session time */
 	session_time = stat_session.tv_usec / 1000000.0 + stat_session.tv_sec;
 
 	fprintf(sf, "Speed factor for replay: %.3f\n", replay_factor);
-	fprintf(sf, "Total run time in seconds: %.3f\n", runtime);
+	fprintf(sf, "Total run time:");
+	if (hours > 0) {
+		fprintf(sf, " %d hours", hours);
+	}
+	if (minutes > 0) {
+		fprintf(sf, " %d minutes", minutes);
+	}
+	fprintf(sf, " %.3f seconds\n", seconds);
 	fprintf(sf, "Maximum lag behind schedule: %lu seconds\n", (unsigned long) secs_behind);
 	fprintf(sf, "Calls to the server: %lu\n", stat_actions);
 	if (runtime > 0.0) {
