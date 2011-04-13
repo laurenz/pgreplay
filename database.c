@@ -415,6 +415,7 @@ int database_consumer(replay_item *item) {
 											conn->session_id, p1);
 										strcpy(conn->errmsg, p1);
 										conn->status = closed;
+										PQfinish(conn->db_conn);
 									}
 
 									break;
@@ -423,6 +424,7 @@ int database_consumer(replay_item *item) {
 							default:
 								fprintf(stderr, "Connection for session 0x" UINT64_FORMAT " failed: %s\n", conn->session_id, PQerrorMessage(conn->db_conn));
 								rc = -1;
+								PQfinish(conn->db_conn);
 						}
 						break;
 					default:

@@ -1,3 +1,10 @@
+Version 1.0.0
+
+Bugfixes:
+- Fix a connection and memory leak introduced by the new handling of FATAL
+  connection errors in 0.9.1.
+  Discovered by Denis Kostin.
+
 Version 0.9.1  Feb 26 2011
 
 Enhancements:
