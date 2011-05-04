@@ -407,8 +407,8 @@ int database_consumer(replay_item *item) {
 								p1 = PQerrorMessage(conn->db_conn);
 								if (0 == strncmp(p1, "FATAL:  ", 8)) {
 									p1 += 8;
-									if (NULL == (conn->errmsg = malloc(strlen(p1)))) {
-										fprintf(stderr, "Cannot allocate %lu bytes of memory\n", (unsigned long)strlen(p1));
+									if (NULL == (conn->errmsg = malloc(strlen(p1) + 1))) {
+										fprintf(stderr, "Cannot allocate %lu bytes of memory\n", (unsigned long)(strlen(p1) + 1));
 										rc = -1;
 									} else {
 										debug(2, "Connection for session 0x" UINT64_FORMAT " failed with FATAL error: %s\n",
