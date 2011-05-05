@@ -74,7 +74,7 @@ static struct timeval stat_session = {0, 0};  /* session duration total */
 static struct timeval stat_longstmt = {0, 0}; /* session duration total */
 static unsigned long stat_stmt = 0;           /* number of SQL statements */
 static unsigned long stat_prep = 0;           /* number of preparations */
-static unsigned long stat_errors = 0;         /* unsuccessful SQL statements */
+static unsigned long stat_errors = 0;         /* unsuccessful SQL statements and preparations */
 static unsigned long stat_actions = 0;        /* client-server interactions */
 static unsigned long stat_statements = 0;     /* number of concurrent statements */
 static unsigned long stat_stmtmax = 0;        /* maximum concurrent statements */
@@ -134,6 +134,8 @@ static void print_replay_statistics() {
 	int hours, minutes;
 	double seconds, runtime, session_time, busy_time;
 	struct timeval delta;
+	unsigned long histtotal =
+		stat_hist[0] + stat_hist[1] + stat_hist[2] + stat_hist[3] + stat_hist[4];
 
 	fprintf(sf, "\nReplay statistics\n");
 	fprintf(sf, "=================\n\n");
@@ -197,11 +199,11 @@ static void print_replay_statistics() {
 		fprintf(sf, "Maximum SQL statement duration: %.3f seconds\n",
 			stat_longstmt.tv_sec + stat_longstmt.tv_usec / 1000000.0);
 		fprintf(sf, "Statement duration histogram:\n");
-		fprintf(sf, "  0    to 0.02 seconds: %.3f%%\n", 100.0 * stat_hist[0] / stat_stmt);
-		fprintf(sf, "  0.02 to 0.1  seconds: %.3f%%\n", 100.0 * stat_hist[1] / stat_stmt);
-		fprintf(sf, "  0.1  to 0.5  seconds: %.3f%%\n", 100.0 * stat_hist[2] / stat_stmt);
-		fprintf(sf, "  0.5  to 2    seconds: %.3f%%\n", 100.0 * stat_hist[3] / stat_stmt);
-		fprintf(sf, "     over 2    seconds: %.3f%%\n", 100.0 * stat_hist[4] / stat_stmt);
+		fprintf(sf, "  0    to 0.02 seconds: %.3f%%\n", 100.0 * stat_hist[0] / histtotal);
+		fprintf(sf, "  0.02 to 0.1  seconds: %.3f%%\n", 100.0 * stat_hist[1] / histtotal);
+		fprintf(sf, "  0.1  to 0.5  seconds: %.3f%%\n", 100.0 * stat_hist[2] / histtotal);
+		fprintf(sf, "  0.5  to 2    seconds: %.3f%%\n", 100.0 * stat_hist[3] / histtotal);
+		fprintf(sf, "     over 2    seconds: %.3f%%\n", 100.0 * stat_hist[4] / histtotal);
 	}
 }
 	
@@ -480,7 +482,10 @@ int database_consumer(replay_item *item) {
 							rc = -1;
 						} else {
 							/* check if we are done reading */
-							if (! PQisBusy(conn->db_conn)) {
+							if (PQisBusy(conn->db_conn)) {
+								/* more to read */
+								all_idle = 0;
+							} else {
 								/* read and discard all results */
 								while (NULL != (result = PQgetResult(conn->db_conn))) {
 									/* count statements and errors for statistics */
@@ -535,7 +540,7 @@ int database_consumer(replay_item *item) {
 										} else {
 											++stat_hist[3];
 										}
-									} else if (2 >= delta.tv_sec) {
+									} else if (2 > delta.tv_sec) {
 										++stat_hist[3];
 									} else {
 										++stat_hist[4];
@@ -558,9 +563,6 @@ int database_consumer(replay_item *item) {
 										stat_exec.tv_usec -= 1000000;
 									}
 								}
-							} else {
-								/* more to read */
-								all_idle = 0;
 							}
 						}
 						break;
