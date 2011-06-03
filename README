@@ -23,7 +23,8 @@ situations:
   affect you.
 
 Moreover, pgreplay can give you some feeling as to how your application
-*might* scale by allowing you to replay the workload at a different speed.
+*might* scale by allowing you to try to replay the workload at a higher
+speed (if that is possible, see "implementation details" below).
 Be warned, though, that 500 users working at double speed is not really
 the same as 1000 users working at normal speed.
 
@@ -74,6 +75,11 @@ switch of "configure".
 
 Unless you link it statically, pgreplay requires the PostgreSQL client 
 shared library on the system where it is run.
+
+The following utilities are only necessary if you intend to develop pgreplay:
+- autoconf 2.62 or better to generate 'configure'
+- GNU tar to 'make tarball' (unless you want to roll it by hand)
+- groff to make the HTML documentation with 'make html'
 
 Testing
 -------
