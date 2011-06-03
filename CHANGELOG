@@ -1,4 +1,4 @@
-Version 1.0.0
+Version 1.0.0  Jun 03 2011
 
 Bugfixes:
 - Fix a connection and memory leak introduced by the new handling of FATAL
