@@ -924,7 +924,7 @@ static int filter_bad_statements(char *line, struct connection *conn) {
 			} else {
 				++p;
 			}
-		} else if ('$' == *p) {
+		} else if (('$' == *p) && (('0' > *(p+1)) || (('9' < *(p+1))))) {
 			/* dollar quoted string constant; skip to end */
 			quote = p++;
 			while (('$' != *p) && ('\0' != *p)) {

@@ -1,5 +1,10 @@
 Version 1.0.1
 
+Bugfixes:
+- Fix incorrect assumption that everything that starts with a dollar
+  sign is a dollar quoted string.  This used to trigger bogus "end of dollar
+  quote not found" error messages when $n placeholders are used in PREPARE
+  statements.  Discovered and fixed by Todd Owen.
 Enhancements:
 - Respect environment variable DESTDIR in Makefile for RPM packagers.
 
