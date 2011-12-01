@@ -83,6 +83,27 @@ static unsigned long stat_sessions = 0;       /* number of concurrent sessions *
 static unsigned long stat_sessmax = 0;        /* maximum concurrent sessions */
 static unsigned long stat_hist[5] = {0, 0, 0, 0, 0};  /* duration histogram */
 
+#define NUM_DELAY_STEPS 11
+
+/* steps for execution delay reports */
+static struct {
+	int seconds;
+	char *display;
+	short int shown;
+} delay_steps[NUM_DELAY_STEPS] = {
+	{10, "10 seconds", 0},
+	{30, "30 seconds", 0},
+	{60, "1 minute", 0},
+	{180, "3 minutes", 0},
+	{600, "10 minutes", 0},
+	{1800, "30 minutes", 0},
+	{3600, "1 hour", 0},
+	{7200, "2 hours", 0},
+	{21600, "6 hours", 0},
+	{43200, "12 hours", 0},
+	{86400, "1 day", 0}
+};
+
 /* processes (ignores) notices from the server */
 static void ignore_notices(void *arg, const PGresult *res) {
 }
@@ -331,7 +352,7 @@ void database_consumer_finish() {
 int database_consumer(replay_item *item) {
 	const uint64_t session_id = replay_get_session_id(item);
 	const replay_type type = replay_get_type(item);
-	int all_idle = 1, rc = 0;
+	int all_idle = 1, rc = 0, j;
 	struct dbconn *conn = connections, *found_conn = NULL, *prev_conn = NULL;
 	struct timeval target_time, now, delta;
 	const struct timeval *stmt_time;
@@ -658,8 +679,12 @@ int database_consumer(replay_item *item) {
 		/* warn if we fall behind too much */
 		if (secs_behind < now.tv_sec - target_time.tv_sec) {
 			secs_behind = now.tv_sec - target_time.tv_sec;
-			if (! (secs_behind % 10)) {
-				printf("Execution is %lu seconds behind schedule\n", (unsigned long)secs_behind);
+			for (j=0; j<NUM_DELAY_STEPS; ++j) {
+				if (! delay_steps[j].shown && delay_steps[j].seconds <= secs_behind) {
+					printf("Execution is %s behind schedule\n", delay_steps[j].display);
+					fflush(stdout);
+					delay_steps[j].shown = 1;
+				}
 			}
 		}
 

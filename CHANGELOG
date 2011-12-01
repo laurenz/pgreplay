@@ -1,12 +1,15 @@
 Version 1.0.1
 
+Enhancements:
+- Respect environment variable DESTDIR in Makefile for RPM packagers.
+- Improve execution delay reporting by introducing more intelligent time
+  steps when a report is written; every 10 seconds is way too spammy.
+
 Bugfixes:
 - Fix incorrect assumption that everything that starts with a dollar
   sign is a dollar quoted string.  This used to trigger bogus "end of dollar
   quote not found" error messages when $n placeholders are used in PREPARE
   statements.  Discovered and fixed by Todd Owen.
-Enhancements:
-- Respect environment variable DESTDIR in Makefile for RPM packagers.
 
 Version 1.0.0  Jun 03 2011
 
