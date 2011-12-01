@@ -43,7 +43,7 @@ following parameters in \fBpostgresql.conf\fR:
 .br
 \fBlog_disconnections=on\fR
 .br
-\fBlog_line_prefix=\(aq%m|%u|%d|%c|\(aq\fR (if you don\(aqt use CVS logging)
+\fBlog_line_prefix=\(aq%m|%u|%d|%c|\(aq\fR (if you don\(aqt use CSV logging)
 .br
 \fBlog_statement=\(aqall\(aq\fR
 .br
@@ -76,8 +76,8 @@ the same as 1000 users working at normal speed.
 .SS Parse options:
 .TP
 \fB-c\fR
-Specifies that the log file is in \(aqcsvlog\(aq format and not in
-\(aqstderr\(aq format.
+Specifies that the log file is in \(aqcsvlog\(aq format (highly recommended)
+and not in \(aqstderr\(aq format.
 .TP
 \fB-b\fR \fItimestamp\fR
 Only log entries greater or equal to that timestamp will be parsed.

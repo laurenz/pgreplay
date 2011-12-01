@@ -109,11 +109,15 @@ log_min_messages = error  (or more)
 log_min_error_statement = log  (or more)
 log_connections = on
 log_disconnections = on
-log_line_prefix = '%m|%u|%d|%c|'  (if you don't use CVS logging)
+log_line_prefix = '%m|%u|%d|%c|'  (if you don't use CSV logging)
 log_statement = 'all'
 lc_messages must be set to English (the encoding does not matter)
 bytea_output = escape  (from version 9.0 on, only if you want to replay
                         the log on 8.4 or earlier)
+
+It is highly recommended that you use CSV logging, because anything that
+the PostgreSQL server or any loaded modules write to standard error will
+be written to the stderr log and might confuse the parser.
 
 Then let your users have their way with the database.
 
