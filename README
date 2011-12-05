@@ -164,6 +164,16 @@ This leads to some limitations:
   log_min_messages is debug2 or more), these statements will be prepared
   immediately before they are first executed during replay.
 
+While pgreplay makes sure that commands are sent to the server in the
+order in which they were originally executed, there is no way to guarantee
+that they will be executed in the same order during replay:  Network
+delay, processor contention and other factors may cause a later command
+to "overtake" an earlier one.  While this does not matter if the
+commands don't affect each other, it can lead to SQL statements hitting
+locks unexpectedly, causing replay to deadlock and "hang".
+This is particularly likely if many different sessions change the same data
+repeatedly in short intervals.
+
 Implementation details
 ======================
 
