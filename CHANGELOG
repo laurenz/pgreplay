@@ -4,6 +4,7 @@ Enhancements:
 - Respect environment variable DESTDIR in Makefile for RPM packagers.
 - Improve execution delay reporting by introducing more intelligent time
   steps when a report is written; every 10 seconds is way too spammy.
+- Add documentation for interaction with pgFouine to the README.
 
 Bugfixes:
 - Fix incorrect assumption that everything that starts with a dollar

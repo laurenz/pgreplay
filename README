@@ -250,6 +250,85 @@ and is constructed as follows:
   Read the source for details.
 - Each record is terminated by a new-line character (byte 0x0A).
 
+pgreplay and pgFouine
+=====================
+
+pgFouine (http://pgfouine.projects.postgresql.org/) is a PostgreSQL log file
+analyzer that allows you to understand your database workload and find
+bottlenecks and slow queries.
+
+Because both pgreplay and pgFouine target performance questions, it would be
+nice if they could operate on the same log files.  But pgFouine needs the
+statement to be logged along with its duration, which is logged at the end of
+query execution, whereas pgreplay needs it at execution start time, so they
+cannot use the same log file.
+
+If you use CSV logging, there is a workaround with which you can turn a
+log file for pgFouine into a log file for pgreplay.  The following describes
+this procedure for PostgreSQL 8.4 (there is an additional field in the CSV log
+from 9.0 on, and pgFouine currently does not work with the new format).
+
+For recording, use the following configuration parameters:
+
+log_destination = 'csvlog'
+redirect_stderr = on
+log_min_messages = error
+log_min_error_statement = log
+log_connections = on
+log_disconnections = on
+log_duration = off
+log_min_duration_statement = 0
+log_statement = 'none'
+lc_messages must be set to English (the encoding does not matter)
+
+The resulting CSV log file can be parsed by pgFouine.  Then you need a
+PostgreSQL database to create a new CSV file as follows:
+
+CREATE TABLE postgres_log
+(
+  log_time timestamp(3) with time zone,
+  user_name text,
+  database_name text,
+  process_id integer,
+  connection_from text,
+  session_id text,
+  session_line_num bigint,
+  command_tag text,
+  session_start_time timestamp with time zone,
+  virtual_transaction_id text,
+  transaction_id bigint,
+  error_severity text,
+  sql_state_code text,
+  message text,
+  detail text,
+  hint text,
+  internal_query text,
+  internal_query_pos integer,
+  context text,
+  query text,
+  query_pos integer,
+  location text
+);
+
+COPY postgres_log FROM '/path/to/for_pgfouine.csv' WITH CSV;
+
+UPDATE postgres_log SET
+  log_time = log_time - CAST(substring(message FROM '\d+.\d* ms') AS interval),
+  message = regexp_replace(message, '^duration: \d+.\d* ms  ', '')
+WHERE error_severity = 'LOG' AND message ~ '^duration: \d+.\d* ms  ';
+
+COPY (SELECT
+        to_char(log_time, 'YYYY-MM-DD HH24:MI:SS.MS TZ'),
+        user_name, database_name, process_id, connection_from,
+        session_id, session_line_num, command_tag, session_start_time,
+        virtual_transaction_id, transaction_id, error_severity,
+        sql_state_code, message, detail, hint, internal_query,
+        internal_query_pos, context, query, query_pos, location
+      FROM postgres_log ORDER BY log_time, session_line_num)
+  TO '/path/to/for_pgreplay.csv' WITH CSV;
+
+The resulting "for_pgreplay.csv" can be parsed by pgreplay.
+
 TODO list
 =========
 
