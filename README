@@ -313,9 +313,9 @@ CREATE TABLE postgres_log
 COPY postgres_log FROM '/path/to/for_pgfouine.csv' WITH CSV;
 
 UPDATE postgres_log SET
-  log_time = log_time - CAST(substring(message FROM '\d+.\d* ms') AS interval),
-  message = regexp_replace(message, '^duration: \d+.\d* ms  ', '')
-WHERE error_severity = 'LOG' AND message ~ '^duration: \d+.\d* ms  ';
+  log_time = log_time - CAST(substring(message FROM E'\\d+.\\d* ms') AS interval),
+  message = regexp_replace(message, E'^duration: \\d+.\\d* ms  ', '')
+WHERE error_severity = 'LOG' AND message ~ E'^duration: \\d+.\\d* ms  ';
 
 COPY (SELECT
         to_char(log_time, 'YYYY-MM-DD HH24:MI:SS.MS TZ'),
