@@ -24,9 +24,6 @@
 #	include <windows.h>
 #endif
 
-/* time to nap between socket checks */
-#define NAP_MICROSECONDS 1000
-
 /* connect string */
 static char *conn_string;
 
@@ -356,7 +353,6 @@ int database_consumer(replay_item *item) {
 	struct dbconn *conn = connections, *found_conn = NULL, *prev_conn = NULL;
 	struct timeval target_time, now, delta;
 	const struct timeval *stmt_time;
-	struct timeval nap_time;
 	static int fstmtm_set = 0;  /* have we already collected first_statement_time */
 	double d;
 	time_t i;
@@ -722,13 +718,6 @@ int database_consumer(replay_item *item) {
 			fprintf(stderr, "Connection 0x" UINT64_FORMAT " failed with FATAL error: %s\n",
 				found_conn->session_id, found_conn->errmsg);
 			rc = -1;
-		} else {
-			/* item cannot be consumed yet, nap a little */
-			nap_time.tv_sec = 0;
-			nap_time.tv_usec = NAP_MICROSECONDS;
-			if (-1 == do_sleep(&nap_time)) {
-				rc = -1;
-			}
 		}
 	}
 

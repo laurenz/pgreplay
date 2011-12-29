@@ -11,6 +11,11 @@ Bugfixes:
   sign is a dollar quoted string.  This used to trigger bogus "end of dollar
   quote not found" error messages when $n placeholders are used in PREPARE
   statements.  Discovered and fixed by Todd Owen.
+- When pgreplay waited for a response on a connection because it needed to
+  send the next command, it used to sleep for one millisecond before
+  polling the socket again.  This proved to be too long on busy systems,
+  where replay started to lag behind.  Now pgreplay will not sleep,
+  but keep polling until the response is there.
 
 Version 1.0.0  Jun 03 2011
 
