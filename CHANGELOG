@@ -1,4 +1,4 @@
-Version 1.0.1
+Version 1.1.0  Feb 09 2012
 
 Enhancements:
 - Respect environment variable DESTDIR in Makefile for RPM packagers.
