@@ -24,6 +24,35 @@
 #	include <windows.h>
 #endif
 
+/*
+ * Utility macros to calculate with struct timeval.
+ * These are already defined on BSD type systems.
+ */
+
+#ifndef timeradd
+#	define timeradd(a, b, result)  \
+	do {  \
+		(result)->tv_sec = (a)->tv_sec + (b)->tv_sec;  \
+		(result)->tv_usec = (a)->tv_usec + (b)->tv_usec;  \
+		if ((result)->tv_usec >= 1000000) {  \
+			++(result)->tv_sec;  \
+			(result)->tv_usec -= 1000000;  \
+		}  \
+	} while (0)
+#endif
+
+#ifndef timersub
+#	define timersub(a, b, result)  \
+	do {  \
+		(result)->tv_sec = (a)->tv_sec - (b)->tv_sec;  \
+		(result)->tv_usec = (a)->tv_usec - (b)->tv_usec;  \
+		if ((result)->tv_usec < 0) {  \
+			--(result)->tv_sec;  \
+			(result)->tv_usec += 1000000;  \
+		}  \
+	} while (0)
+#endif
+
 /* connect string */
 static char *conn_string;
 
@@ -162,13 +191,7 @@ static void print_replay_statistics() {
 	delta.tv_sec = stop_time.tv_sec;
 	delta.tv_usec = stop_time.tv_usec;
 	/* subtract statement start time */
-	if (delta.tv_usec >= start_time.tv_usec) {
-		delta.tv_sec -= start_time.tv_sec;
-		delta.tv_usec -= start_time.tv_usec;
-	} else {
-		delta.tv_sec -= start_time.tv_sec + 1;
-		delta.tv_usec += 1000000 - start_time.tv_usec;
-	}
+	timersub(&delta, &start_time, &delta);
 	runtime = delta.tv_usec / 1000000.0 + delta.tv_sec;
 	/* calculate hours and minutes, subtract from delta */
 	hours = delta.tv_sec / 3600;
@@ -538,13 +561,7 @@ int database_consumer(replay_item *item) {
 									rc = -1;
 								} else {
 									/* subtract statement start time */
-									if (delta.tv_usec >= conn->stmt_start.tv_usec) {
-										delta.tv_sec -= conn->stmt_start.tv_sec;
-										delta.tv_usec -= conn->stmt_start.tv_usec;
-									} else {
-										delta.tv_sec -= conn->stmt_start.tv_sec + 1;
-										delta.tv_usec += 1000000 - conn->stmt_start.tv_usec;
-									}
+									timersub(&delta, &(conn->stmt_start), &delta);
 
 									/* add to duration histogram */
 									if (0 == delta.tv_sec) {
@@ -573,12 +590,7 @@ int database_consumer(replay_item *item) {
 									}
 
 									/* add to total */
-									stat_exec.tv_sec += delta.tv_sec;
-									stat_exec.tv_usec += delta.tv_usec;
-									if (stat_exec.tv_usec >= 1000000) {
-										++stat_exec.tv_sec;
-										stat_exec.tv_usec -= 1000000;
-									}
+									timeradd(&stat_exec, &delta, &stat_exec);
 								}
 							}
 						}
@@ -640,13 +652,7 @@ int database_consumer(replay_item *item) {
 		target_time.tv_usec = stmt_time->tv_usec;
 
 		/* subtract time of first statement */
-		if (target_time.tv_usec >= first_stmt_time.tv_usec) {
-			target_time.tv_usec -= first_stmt_time.tv_usec;
-			target_time.tv_sec -= first_stmt_time.tv_sec;
-		} else {
-			target_time.tv_usec = (1000000 + target_time.tv_usec) - first_stmt_time.tv_usec;
-			target_time.tv_sec -= first_stmt_time.tv_sec + 1;
-		}
+		timersub(&target_time, &first_stmt_time, &target_time);
 
 		/* divide by replay_factor */
 		if (replay_factor != 1.0) {
@@ -665,12 +671,7 @@ int database_consumer(replay_item *item) {
 		}
 
 		/* add program start time */
-		target_time.tv_usec += start_time.tv_usec;
-		target_time.tv_sec += start_time.tv_sec;
-		if (target_time.tv_usec > 1000000) {
-			target_time.tv_usec -= 1000000;
-			++target_time.tv_sec;
-		}
+		timeradd(&target_time, &start_time, &target_time);
 
 		/* warn if we fall behind too much */
 		if (secs_behind < now.tv_sec - target_time.tv_sec) {
@@ -690,13 +691,7 @@ int database_consumer(replay_item *item) {
 			/* sleep if all is idle and the target time is in the future */
 
 			/* calculate time to sleep (delta = target_time - now) */
-			if (target_time.tv_usec > now.tv_usec) {
-				delta.tv_sec = target_time.tv_sec - now.tv_sec;
-				delta.tv_usec = target_time.tv_usec - now.tv_usec;
-			} else {
-				delta.tv_sec = target_time.tv_sec - now.tv_sec - 1;
-				delta.tv_usec = 1000000 + target_time.tv_usec - now.tv_usec;
-			}
+			timersub(&target_time, &now, &delta);
 
 			/* sleep */
 			if (-1 == do_sleep(&delta)) {
@@ -830,21 +825,10 @@ int database_consumer(replay_item *item) {
 						rc = -1;
 					} else {
 						/* subtract session start time */
-						if (delta.tv_usec >= found_conn->session_start.tv_usec) {
-							delta.tv_sec -= found_conn->session_start.tv_sec;
-							delta.tv_usec -= found_conn->session_start.tv_usec;
-						} else {
-							delta.tv_sec -= found_conn->session_start.tv_sec + 1;
-							delta.tv_usec += 1000000 - found_conn->session_start.tv_usec;
-						}
+						timersub(&delta, &(found_conn->session_start), &delta);
 	
 						/* add to total */
-						stat_session.tv_sec += delta.tv_sec;
-						stat_session.tv_usec += delta.tv_usec;
-						if (stat_session.tv_usec >= 1000000) {
-							++stat_session.tv_sec;
-							stat_session.tv_usec -= 1000000;
-						}
+						timeradd(&stat_session, &delta, &stat_session);
 					}
 	
 					/* one less concurrent session */
