@@ -72,6 +72,9 @@ extern FILE *sf;
 /* if 1, backslash will escape the following single quote in string literal */
 extern int backslash_quote;
 
+/* if 1, replay will skip idle intervals instead of sleeping */
+extern int jump_enabled;
+
 /* print debug messages */
 #define debug(level, format, ...) { \
 	if (level <= debug_level) { \

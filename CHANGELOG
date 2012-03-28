@@ -1,3 +1,11 @@
+Version 1.2.0
+
+Enhancements:
+- Introduce replay option "-j" to jump ahead when all connections are idle.
+  This can speed up replay.  The statistics will not include the skipped time,
+  but delay warnings will work as expected.
+  Idea and original patch by John Lumby.
+
 Version 1.1.0  Feb 09 2012
 
 Enhancements:

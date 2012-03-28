@@ -94,6 +94,9 @@ static struct timeval first_stmt_time;
 /* maximum seconds behind schedule */
 static time_t secs_behind = 0;
 
+/* time skipped instead of sleeping through it */
+static struct timeval jump_total = {0, 0};
+
 /* statistics */
 static struct timeval stat_exec = {0, 0};     /* SQL statement execution time */
 static struct timeval stat_session = {0, 0};  /* session duration total */
@@ -643,9 +646,9 @@ int database_consumer(replay_item *item) {
 	/* determine if statement should already be consumed, sleep if necessary */
 	if (-1 != rc) {
 		/* calculate "target time" when item should be replayed:
-		                        statement time - first statement time
-		   program start time + -------------------------------------
-		                                    replay factor            */
+		                                       statement time - first statement time
+		   program start time - skipped time + -------------------------------------
+		                                                   replay factor            */
 
 		/* timestamp of the statement */
 		target_time.tv_sec = stmt_time->tv_sec;
@@ -653,6 +656,11 @@ int database_consumer(replay_item *item) {
 
 		/* subtract time of first statement */
 		timersub(&target_time, &first_stmt_time, &target_time);
+
+		/* subtract skipped time */
+		if (jump_enabled) {
+			timersub(&target_time, &jump_total, &target_time);
+		}
 
 		/* divide by replay_factor */
 		if (replay_factor != 1.0) {
@@ -688,17 +696,25 @@ int database_consumer(replay_item *item) {
 		if (((target_time.tv_sec > now.tv_sec) ||
 				((target_time.tv_sec == now.tv_sec) && (target_time.tv_usec > now.tv_usec))) &&
 				all_idle) {
-			/* sleep if all is idle and the target time is in the future */
+			/* sleep or jump if all is idle and the target time is in the future */
 
-			/* calculate time to sleep (delta = target_time - now) */
+			/* calculate time to sleep or jump (delta = target_time - now) */
 			timersub(&target_time, &now, &delta);
 
-			/* sleep */
-			if (-1 == do_sleep(&delta)) {
-				rc = -1;
-			} else {
+			if (jump_enabled) {
+				/* add the sleep time to jump_total */
+				timeradd(&jump_total, &delta, &jump_total);
+				debug(2, "Skipping %lu.%06lu seconds\n", (unsigned long)delta.tv_sec, (unsigned long)delta.tv_usec);
 				/* then consume item */
 				rc = 1;
+			} else {
+				/* sleep */
+				if (-1 == do_sleep(&delta)) {
+					rc = -1;
+				} else {
+					/* then consume item */
+					rc = 1;
+				}
 			}
 		} else if (((target_time.tv_sec < now.tv_sec) ||
 				((target_time.tv_sec == now.tv_sec) && (target_time.tv_usec <= now.tv_usec))) &&

@@ -20,6 +20,9 @@ FILE *sf;
 /* if 1, backslash will escape the following single quote in string literal */
 int backslash_quote = 0;
 
+/* if 1, replay will skip idle intervals instead of sleeping */
+int jump_enabled = 0;
+
 /* wrapper for setenv, returns 0 on success and -1 on error */
 static int do_setenv(const char *name, const char *value) {
 	int rc;
@@ -66,7 +69,8 @@ static void help(FILE *f) {
 	fprintf(f, "   -p <port>\n");
 	fprintf(f, "   -W <password>  (must be the same for all users)\n");
 	fprintf(f, "   -s <factor>    (speed factor for replay)\n");
-	fprintf(f, "   -E <encoding>  (server encoding)\n\n");
+	fprintf(f, "   -E <encoding>  (server encoding)\n");
+	fprintf(f, "   -j             (skip idle time during replay)\n\n");
 	fprintf(f, "Debugging:\n");
 	fprintf(f, "   -d <level>     (level between 1 and 3)\n");
 	fprintf(f, "   -v             (prints version and exits)\n");
@@ -94,7 +98,7 @@ int main(int argc, char **argv) {
 
 	/* parse arguments */
 	opterr = 0;
-	while (-1 != (arg = getopt(argc, argv, "vfro:h:p:W:s:E:d:cb:e:q"))) {
+	while (-1 != (arg = getopt(argc, argv, "vfro:h:p:W:s:E:d:cb:e:qj"))) {
 		switch (arg) {
 			case 'f':
 				parse_only = 1;
@@ -213,6 +217,9 @@ int main(int argc, char **argv) {
 				break;
 			case 'q':
 				backslash_quote = 1;
+				break;
+			case 'j':
+				jump_enabled = 1;
 				break;
 			case '?':
 				if (('?' == optopt) || ('h' == optopt)) {

@@ -121,6 +121,11 @@ in \(oqslow motion\(cq, while a \fIfactor\fR greater than 1 means
 Specifies the encoding of the log file, which will be used as client
 encoding during replay. If it is omitted, your default client encoding will
 be used.
+.TP
+\fB-j\fR
+If all connections are idle, jump ahead to the next request instead of
+sleeping. This will speed up replay. Execution delays will still be reported
+correctly, but replay statistics will not contain the idle time.
 .SS Output options:
 .TP
 \fB-o\fP \fIoutfile\fR
