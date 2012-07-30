@@ -6,6 +6,11 @@ Enhancements:
   but delay warnings will work as expected.
   Idea and original patch by John Lumby.
 
+Bugfixes:
+- Fix failure to parse string constants like E'\\' where the backslash before
+  a quotation mark is backslash-quoted.
+  Bug discovered by Jeff Frost.
+
 Version 1.1.0  Feb 09 2012
 
 Enhancements:

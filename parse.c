@@ -887,8 +887,8 @@ static int filter_bad_statements(char *line, struct connection *conn) {
 						break;
 					}
 				}
-				if (('\\' == *p) && ('\'' == p[1])) {
-					/* backslash escaped apostrophe */
+				if (('\\' == *p) && (('\'' == p[1]) || ('\\' == p[1]))) {
+					/* backslash escaped apostrophe or backslash */
 					++p;
 				}
 			}
@@ -911,8 +911,8 @@ static int filter_bad_statements(char *line, struct connection *conn) {
 						break;
 					}
 				}
-				if (backslash_quote && ('\\' == *p) && ('\'' == p[1])) {
-					/* backslash escaped apostrophe */
+				if (backslash_quote && ('\\' == *p) && (('\'' == p[1]) || ('\\' == p[1]))) {
+					/* backslash escaped apostrophe or backslash */
 					++p;
 				}
 			}
