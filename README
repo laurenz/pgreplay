@@ -157,9 +157,13 @@ This leads to some limitations:
   anyway.
 - Fast-path API function calls are not logged and will not be replayed.
   Unfortunately, this includes the Large Object API.
-- Since the log file is always encoded in the server encoding (which you
+- Since the log file is always written in the database encoding (which you
   can specify with the -E switch of pgreplay), all "SET client_encoding"
   statements will be ignored.
+- If your cluster contains databases with different encoding, the log file
+  will have mixed encoding as well.  You cannot use pgreplay well in such
+  an environment, because many statements against databases whose
+  encoding does not match the -E switch will fail.
 - Since the preparation time of prepared statements is not logged (unless
   log_min_messages is debug2 or more), these statements will be prepared
   immediately before they are first executed during replay.
