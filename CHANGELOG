@@ -1,4 +1,4 @@
-Version 1.2.0
+Version 1.2.0  Aug 17 2012
 
 Enhancements:
 - Introduce replay option "-j" to jump ahead when all connections are idle.
