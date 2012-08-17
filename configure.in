@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.62])
-AC_INIT([pgreplay], [1.1.0], [laurenz.albe@wien.gv.at])
+AC_INIT([pgreplay], [1.2.0], [laurenz.albe@wien.gv.at])
 AC_CONFIG_SRCDIR([parse.c])
 AC_CONFIG_HEADERS([config.h])
 AC_CANONICAL_BUILD
@@ -17,7 +17,7 @@ if test "$GCC" = yes; then CFLAGS="-Wall $CFLAGS"; fi
 AC_MSG_CHECKING([whether the linker supports -rpath])
 save_LDFLAGS="$LDFLAGS"
 LDFLAGS="$LDFLAGS -Wl,-rpath,/usr/lib"
-AC_LINK_IFELSE([main() {}], [rpath=yes], [rpath=no])
+AC_LINK_IFELSE([AC_LANG_SOURCE([[main() {}]])], [rpath=yes], [rpath=no])
 LDFLAGS="$save_LDFLAGS"
 AC_MSG_RESULT([$rpath])
 
