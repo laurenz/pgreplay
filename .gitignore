@@ -1,0 +1,24 @@
+# Object files
+*.o
+*.obj
+
+# Libraries
+*.lib
+*.a
+
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# build products
+pgreplay
+pgreplay.exe
+Makefile
+config.h
+config.log
+config.status
+
+# test subdirectory
+test/
