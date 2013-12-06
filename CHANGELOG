@@ -1,3 +1,10 @@
+Enhancements:
+- Accept CPPFLAGS from configure in Makefile.in.
+  Patch by Marko Kreen.
+- Add command line option -X to specify extra connect string fragment.
+  Needed to specify unusual connect string options.
+  Patch by Marko Kreen.
+
 Version 1.2.0  Aug 17 2012
 
 Enhancements:

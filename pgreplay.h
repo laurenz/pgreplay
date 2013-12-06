@@ -75,6 +75,9 @@ extern int backslash_quote;
 /* if 1, replay will skip idle intervals instead of sleeping */
 extern int jump_enabled;
 
+/* extra connect options specified with the -X option */
+extern char *extra_connstr;
+
 /* print debug messages */
 #define debug(level, format, ...) { \
 	if (level <= debug_level) { \

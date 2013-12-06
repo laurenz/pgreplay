@@ -288,6 +288,9 @@ int database_consumer_init(const char *ignore, const char *host, int port, const
 		}
 	}
 
+	if (extra_connstr)
+		conn_string_len += strlen(extra_connstr);
+
 	if (NULL == (conn_string = malloc(conn_string_len))) {
 		fprintf(stderr, "Cannot allocate %d bytes of memory\n", conn_string_len);
 		return 0;
@@ -346,6 +349,11 @@ int database_consumer_init(const char *ignore, const char *host, int port, const
 		}
 		*(p1++) = '\'';
 		*p1 = '\0';
+	}
+
+	if (extra_connstr) {
+		*(p1++) = ' ';
+		strcpy(p1, extra_connstr);
 	}
 
 	debug(2, "Database connect string: \"%s\"\n", conn_string);

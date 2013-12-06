@@ -23,6 +23,9 @@ int backslash_quote = 0;
 /* if 1, replay will skip idle intervals instead of sleeping */
 int jump_enabled = 0;
 
+/* extra connect options specified with the -X option */
+char *extra_connstr;
+
 /* wrapper for setenv, returns 0 on success and -1 on error */
 static int do_setenv(const char *name, const char *value) {
 	int rc;
@@ -98,7 +101,7 @@ int main(int argc, char **argv) {
 
 	/* parse arguments */
 	opterr = 0;
-	while (-1 != (arg = getopt(argc, argv, "vfro:h:p:W:s:E:d:cb:e:qj"))) {
+	while (-1 != (arg = getopt(argc, argv, "vfro:h:p:W:s:E:d:cb:e:qjX:"))) {
 		switch (arg) {
 			case 'f':
 				parse_only = 1;
@@ -220,6 +223,11 @@ int main(int argc, char **argv) {
 				break;
 			case 'j':
 				jump_enabled = 1;
+				break;
+			case 'X':
+				replay_opt = 1;
+
+				extra_connstr = optarg;
 				break;
 			case '?':
 				if (('?' == optopt) || ('h' == optopt)) {
