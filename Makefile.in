@@ -1,4 +1,5 @@
 CFLAGS = @CFLAGS@
+CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 CC = @CC@
@@ -22,7 +23,7 @@ HEADERS = config.h pgreplay.h
 .SUFFIXES: .o .c .h
 
 $(EXE): $(OBJS) $(HEADERS)
-	$(CC) -o $@ $(CFLAGS) $(OBJS) $(LDFLAGS) $(LIBS)
+	$(CC) -o $@ $(CFLAGS) $(CPPFLAGS) $(OBJS) $(LDFLAGS) $(LIBS)
 
 $(OBJS): $(HEADERS)
 
