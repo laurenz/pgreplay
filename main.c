@@ -73,7 +73,8 @@ static void help(FILE *f) {
 	fprintf(f, "   -W <password>  (must be the same for all users)\n");
 	fprintf(f, "   -s <factor>    (speed factor for replay)\n");
 	fprintf(f, "   -E <encoding>  (server encoding)\n");
-	fprintf(f, "   -j             (skip idle time during replay)\n\n");
+	fprintf(f, "   -j             (skip idle time during replay)\n");
+	fprintf(f, "   -X <options>   (extra libpq connect options)\n\n");
 	fprintf(f, "Debugging:\n");
 	fprintf(f, "   -d <level>     (level between 1 and 3)\n");
 	fprintf(f, "   -v             (prints version and exits)\n");
