@@ -18,6 +18,9 @@
 #include <stdint.h>
 #include <sys/time.h>
 
+/* maximum length of a name in PostgreSQL */
+#define NAMELEN 64
+
 /* types for replay items */
 typedef enum {
 	pg_connect = 0,
@@ -32,7 +35,7 @@ typedef enum {
    the definition is in replay_item.c */
 typedef struct replay_item replay_item;
 
-typedef int (replay_item_provider_init)(const char *, int, const char *, const char *);
+typedef int (replay_item_provider_init)(const char *, int, const char *, const char *, const char *, const char *);
 typedef replay_item *(replay_item_provider)();
 typedef void (replay_item_provider_finish)();
 

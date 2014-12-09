@@ -67,6 +67,8 @@ static void help(FILE *f) {
 	fprintf(f, "   -b <timestamp> (start time for parsing logfile)\n");
 	fprintf(f, "   -e <timestamp> (end time for parsing logfile)\n");
 	fprintf(f, "   -q             ( \\' in string literal is a single quote)\n\n");
+	fprintf(f, "   -D <database>  (database name to use as filter for parsing logfile)\n");
+	fprintf(f, "   -U <username>  (username to use as filter for parsing logfile)\n");
 	fprintf(f, "Replay options:\n");
 	fprintf(f, "   -h <hostname>\n");
 	fprintf(f, "   -p <port>\n");
@@ -86,6 +88,7 @@ int main(int argc, char **argv) {
 	double factor = 1.0;
 	char *host = NULL, *encoding = NULL, *endptr, *passwd = NULL,
 		*outfilename = NULL, *infilename = NULL,
+		database_only[NAMELEN] = { '\0' }, username_only[NAMELEN] = { '\0' },
 		start_time[24] = { '\0' }, end_time[24] = { '\0' };
 	const char *errmsg;
 	unsigned long portnr = 0l, debug = 0l;
@@ -102,7 +105,7 @@ int main(int argc, char **argv) {
 
 	/* parse arguments */
 	opterr = 0;
-	while (-1 != (arg = getopt(argc, argv, "vfro:h:p:W:s:E:d:cb:e:qjX:"))) {
+	while (-1 != (arg = getopt(argc, argv, "vfro:h:p:W:s:E:d:cb:e:qjX:D:U:"))) {
 		switch (arg) {
 			case 'f':
 				parse_only = 1;
@@ -222,6 +225,16 @@ int main(int argc, char **argv) {
 			case 'q':
 				backslash_quote = 1;
 				break;
+			case 'D':
+				parse_opt = 1;
+
+				strncpy(database_only, optarg, NAMELEN - 1);
+				break;
+			case 'U':
+				parse_opt = 1;
+
+				strncpy(username_only, optarg, NAMELEN - 1);
+				break;
 			case 'j':
 				jump_enabled = 1;
 				break;
@@ -315,7 +328,9 @@ int main(int argc, char **argv) {
 			infilename,
 			csv,
 			(('\0' == start_time[0]) ? NULL : start_time),
-			(('\0' == end_time[0]) ? NULL : end_time)
+			(('\0' == end_time[0]) ? NULL : end_time),
+			(('\0' == database_only[0]) ? NULL : database_only),
+			(('\0' == username_only[0]) ? NULL : username_only)
 		))
 	{
 		rc = 1;
