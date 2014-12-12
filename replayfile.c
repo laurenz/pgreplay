@@ -123,7 +123,7 @@ static int read_string(char ** const s) {
 	return 1;
 }
 	
-int file_provider_init(const char *infile, int cvs, const char *begin_time, const char *end_time) {
+int file_provider_init(const char *infile, int cvs, const char *begin_time, const char *end_time, const char *db_only, const char *usr_only) {
 	int rc = 1;
 	debug(3, "Entering file_provider_init%s\n", "");
 

@@ -23,8 +23,6 @@
 
 /* long enough to contain the beginning of a log line */
 #define BUFLEN 1024
-/* maximum length of a name in PostgreSQL */
-#define NAMELEN 64
 /* separates log line entries */
 #define SEPCHAR '|'
 
@@ -73,6 +71,8 @@ static struct connection * open_conn[256] = { NULL };
 static int csv;
 /* start and end timestamp for parsing log entries */
 static const char *start_time, *end_time;
+/* database and username filters for parsing log entries */
+static const char *database_only, *username_only;
 /* file which we parse */
 static int infile;
 /* line number for error messages */
@@ -1235,7 +1235,7 @@ static void print_parse_statistics() {
 	fprintf(sf, "Fast-path function calls ignored: %lu\n", stat_fastpath);
 }
 
-int parse_provider_init(const char *in, int parse_csv, const char *begin, const char *end) {
+int parse_provider_init(const char *in, int parse_csv, const char *begin, const char *end, const char *db_only, const char *usr_only) {
 	static struct tm tm;  /* initialize with zeros */
 	int rc = 1;
 
@@ -1253,6 +1253,8 @@ int parse_provider_init(const char *in, int parse_csv, const char *begin, const 
 	csv = parse_csv;
 	start_time = begin;
 	end_time = end;
+	database_only = db_only;
+	username_only = usr_only;
 
 	/* initialize epoch with 2000-01-01 00:00:00 */
 	tm.tm_year  = 2000 - 1900;
@@ -1325,6 +1327,24 @@ replay_item * parse_provider() {
 				status = 3;
 				break;
 			case 1:
+				/* Do not process line that does not match the specified user and database */
+				if ((database_only != NULL) && (strcmp(database, database_only) != 0)) {
+					debug(2, "Database %s does not match %s, skipped log entry\n", database, database_only);
+					free(message);
+					if (! csv && detail) {
+						free(detail);
+					}
+					break;
+				}
+				if ((username_only != NULL) && (strcmp(user, username_only) != 0)) {
+					debug(2, "User %s does not match %s, skipped log entry\n", user, username_only);
+					free(message);
+					if (! csv && detail) {
+						free(detail);
+					}
+					break;
+				}
+
 				/* check line prefix to determine type */
 				if ((log_log == logtype) && (! strncmp(message, "connection authorized: ", 23))) {
 					debug(2, "Connection 0x" UINT64_FORMAT " found\n", session_id);
