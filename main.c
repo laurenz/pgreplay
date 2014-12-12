@@ -88,10 +88,10 @@ int main(int argc, char **argv) {
 	double factor = 1.0;
 	char *host = NULL, *encoding = NULL, *endptr, *passwd = NULL,
 		*outfilename = NULL, *infilename = NULL,
-		database_only[NAMELEN] = { '\0' }, username_only[NAMELEN] = { '\0' },
+		*database_only = NULL, *username_only = NULL,
 		start_time[24] = { '\0' }, end_time[24] = { '\0' };
 	const char *errmsg;
-	unsigned long portnr = 0l, debug = 0l;
+	unsigned long portnr = 0l, debug = 0l, length;
 	replay_item_provider *provider;
 	replay_item_provider_init *provider_init;
 	replay_item_provider_finish *provider_finish;
@@ -228,14 +228,46 @@ int main(int argc, char **argv) {
 			case 'D':
 				parse_opt = 1;
 
-				strncpy(database_only, optarg, NAMELEN - 1);
+				if (NULL == database_only) {
+					length = strlen(optarg) + 3;
+					database_only = malloc(length);
+					if (NULL != database_only)
+						strcpy(database_only, "\\");
+				} else {
+					length = strlen(database_only) + strlen(optarg) + 2;
+					database_only = realloc(database_only, length);
+				}
+				if (NULL == database_only) {
+					fprintf(stderr, "Cannot allocate %lu bytes of memory\n", length);
+					return 1;
+				}
+
+				strcat(database_only, optarg);
+				strcat(database_only, "\\");
 				break;
 			case 'U':
 				parse_opt = 1;
 
-				strncpy(username_only, optarg, NAMELEN - 1);
+				if (NULL == username_only) {
+					length = strlen(optarg) + 3;
+					username_only = malloc(length);
+					if (NULL != username_only)
+						strcpy(username_only, "\\");
+				} else {
+					length = strlen(username_only) + strlen(optarg) + 2;
+					username_only = realloc(username_only, length);
+				}
+				if (NULL == username_only) {
+					fprintf(stderr, "Cannot allocate %lu bytes of memory\n", length);
+					return 1;
+				}
+
+				strcat(username_only, optarg);
+				strcat(username_only, "\\");
 				break;
 			case 'j':
+				replay_opt = 1;
+
 				jump_enabled = 1;
 				break;
 			case 'X':
@@ -329,8 +361,8 @@ int main(int argc, char **argv) {
 			csv,
 			(('\0' == start_time[0]) ? NULL : start_time),
 			(('\0' == end_time[0]) ? NULL : end_time),
-			(('\0' == database_only[0]) ? NULL : database_only),
-			(('\0' == username_only[0]) ? NULL : username_only)
+			database_only,
+			username_only
 		))
 	{
 		rc = 1;

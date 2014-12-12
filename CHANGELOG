@@ -4,6 +4,9 @@ Enhancements:
 - Add command line option -X to specify extra connect string fragment.
   Needed to specify unusual connect string options.
   Patch by Marko Kreen.
+- Introduce replay filter options with "-D database" and "-U username"
+  to filter for a database or user during parsing.
+  Patch by Gilles Darold.
 
 Version 1.2.0  Aug 17 2012
 

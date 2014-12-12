@@ -1327,17 +1327,17 @@ replay_item * parse_provider() {
 				status = 3;
 				break;
 			case 1:
-				/* Do not process line that does not match the specified user and database */
-				if ((database_only != NULL) && (strcmp(database, database_only) != 0)) {
-					debug(2, "Database %s does not match %s, skipped log entry\n", database, database_only);
+				/* Do not process line that does not match any of the specified users and databases */
+				if ((NULL != database_only) && (NULL == strstr(database_only, database))) {
+					debug(2, "Database \"%s\" does not match filter, skipped log entry\n", database);
 					free(message);
 					if (! csv && detail) {
 						free(detail);
 					}
 					break;
 				}
-				if ((username_only != NULL) && (strcmp(user, username_only) != 0)) {
-					debug(2, "User %s does not match %s, skipped log entry\n", user, username_only);
+				if ((NULL != username_only) && (NULL == strstr(username_only, user))) {
+					debug(2, "User \"%s\" does not match filter, skipped log entry\n", user);
 					free(message);
 					if (! csv && detail) {
 						free(detail);
