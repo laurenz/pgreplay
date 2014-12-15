@@ -22,3 +22,7 @@ config.status
 
 # test subdirectory
 test/
+
+# other versioning systems
+.svn
+CVS
