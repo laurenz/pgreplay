@@ -1292,7 +1292,7 @@ void parse_provider_finish() {
 
 replay_item * parse_provider() {
 	replay_item *r = NULL;
-	char *message = NULL, *detail = NULL, *statement = NULL, *namep = NULL, name[NAMELEN + 1], **args, user[NAMELEN + 1], database[NAMELEN + 1];
+	char *message = NULL, *detail = NULL, *statement = NULL, *namep = NULL, name[NAMELEN + 1], **args, user[NAMELEN + 1], database[NAMELEN + 1], quote_name[NAMELEN + 3];
 	log_type logtype;
 	uint64_t session_id;
 	int count, i;
@@ -1328,7 +1328,13 @@ replay_item * parse_provider() {
 				break;
 			case 1:
 				/* Do not process line that does not match any of the specified users and databases */
-				if ((NULL != database_only) && (NULL == strstr(database_only, database))) {
+				memset(quote_name, '\0', NAMELEN + 3);
+				if ('\0' != *database) {
+					quote_name[0] = '\\';
+					strcat(quote_name, database);
+					strcat(quote_name, "\\");
+				}
+				if ((NULL != database_only) && (NULL == strstr(quote_name, quote_name))) {
 					debug(2, "Database \"%s\" does not match filter, skipped log entry\n", database);
 					free(message);
 					if (! csv && detail) {
@@ -1336,7 +1342,13 @@ replay_item * parse_provider() {
 					}
 					break;
 				}
-				if ((NULL != username_only) && (NULL == strstr(username_only, user))) {
+				memset(quote_name, '\0', NAMELEN + 3);
+				if ('\0' != *user) {
+					quote_name[0] = '\\';
+					strcat(quote_name, user);
+					strcat(quote_name, "\\");
+				}
+				if ((NULL != username_only) && (NULL == strstr(username_only, quote_name))) {
 					debug(2, "User \"%s\" does not match filter, skipped log entry\n", user);
 					free(message);
 					if (! csv && detail) {
