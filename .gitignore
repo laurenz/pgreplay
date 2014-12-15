@@ -1,0 +1,22 @@
+# Object files
+*.o
+*.obj
+
+# Libraries
+*.lib
+*.a
+
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# Executables
+*.exe
+
+# Regression test results
+results
+
+# other version control systems
+.svn
