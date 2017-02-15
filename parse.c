@@ -1334,7 +1334,7 @@ replay_item * parse_provider() {
 					strcat(quote_name, database);
 					strcat(quote_name, "\\");
 				}
-				if ((NULL != database_only) && (NULL == strstr(quote_name, quote_name))) {
+				if ((NULL != database_only) && (NULL == strstr(database_only, quote_name))) {
 					debug(2, "Database \"%s\" does not match filter, skipped log entry\n", database);
 					free(message);
 					if (! csv && detail) {
