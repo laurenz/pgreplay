@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.62])
-AC_INIT([pgreplay], [1.3.0], [laurenz.albe@wien.gv.at])
+AC_INIT([pgreplay], [1.3.0], [https://github.com/laurenz/pgreplay/issues], [pgreplay], [http://laurenz.github.io/pgreplay/])
 AC_CONFIG_SRCDIR([parse.c])
 AC_CONFIG_HEADERS([config.h])
 AC_CANONICAL_BUILD

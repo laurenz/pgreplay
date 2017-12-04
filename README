@@ -39,8 +39,8 @@ contains just the statements to be replayed and is hopefully much
 smaller than the original log file.
 Such a replay file can then be run against a database.
 
-pgreplay is written by Laurenz Albe <laurenz.albe@wien.gv.at> and
-is inspired by "Playr" which never made it out of Beta.
+pgreplay is written by Laurenz Albe and is inspired by "Playr"
+which never made it out of Beta.
 
 Installation
 ============
@@ -337,24 +337,8 @@ Support
 =======
 
 If you have a problem or question, the preferred option is to send an
-e-mail to pgreplay-general@lists.pgfoundry.org
-You can subscribe here:
-http://lists.pgfoundry.org/mailman/listinfo/pgreplay-general
-There is a mail archive here:
-http://lists.pgfoundry.org/pipermail/pgreplay-general/
-
-There is the option to open an issue on GitHub:
 https://github.com/laurenz/pgreplay/issues
 This requires a GitHub account.
-
-You can also use the issue trackers on pgFoundry:
-http://pgfoundry.org/tracker/?group_id=1000479
-pgFoundry also offers forums for questions:
-http://pgfoundry.org/forum/?group_id=1000479
-The trackers and forums require a pgFoundry account.
-
-I will also answer e-mail sent to me at laurenz.albe@wien.gv.at, but that way
-you exclude others from helping you or benefiting from your experience.
 
 TODO list
 =========
