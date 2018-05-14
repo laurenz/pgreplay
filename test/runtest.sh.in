@@ -100,6 +100,29 @@ if [ $? -ne 0 ]; then
 	rm -f replay.out replay.err replay.diff
 	exit 1
 fi
+echo "Testing dry run ... "
+../pgreplay -r -N -E UTF8 replayfile 2>dryrun.err|sed '/calls per second/d' >dryrun.out
+if [ $? -ne 0 ]; then
+	echo "command failed, error messages:"
+	cat dryrun.err
+	rm -f dryrun.out dryrun.err
+	exit 1
+fi
+diff -b dryrun.out dryrun_out.exp >dryrun.diff
+if [ $? -ne 0 ]; then
+	echo "unexpected output, difference to expected:"
+	cat dryrun.diff
+	rm -f dryrun.out dryrun.err dryrun.diff
+	exit 1
+fi
+diff -b dryrun.err dryrun_err.exp >dryrun.diff
+if [ $? -ne 0 ]; then
+	echo "unexpected messages, difference to expected:"
+	cat dryrun.diff
+	rm -f dryrun.out dryrun.err dryrun.diff
+	exit 1
+fi
+
 echo "ok"
-rm -f replay.out replay.err replay.diff
+rm -f replay.out replay.err replay.diff dryrun.out dryrun.err dryrun.diff
 exit 0

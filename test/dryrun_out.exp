@@ -1,0 +1,24 @@
+
+Replay statistics (dry run)
+=================
+
+Duration of recorded workload: 37.764 seconds
+Speed factor for replay: 1.000
+Total run time: 0.000 seconds
+Maximum lag behind schedule: 0 seconds
+Calls to the server: 31
+Total number of connections: 4
+Maximum number of concurrent connections: 4
+Average number of concurrent connections: 0.000
+SQL statements executed: 18
+(0 or 0.000% of these completed with error)
+Maximum number of concurrent SQL statements: 0
+Average number of concurrent SQL statements: 0.000
+Average SQL statement duration: 0.000 seconds
+Maximum SQL statement duration: 0.000 seconds
+Statement duration histogram:
+  0    to 0.02 seconds: -nan%
+  0.02 to 0.1  seconds: -nan%
+  0.1  to 0.5  seconds: -nan%
+  0.5  to 2    seconds: -nan%
+     over 2    seconds: -nan%

@@ -12,3 +12,4 @@ Different named prepared SQL statements processed: 1
 (average reuse count 1.000)
 Cancel requests processed: 1
 Fast-path function calls ignored: 5
+Duration of recorded workload: 37.764 seconds

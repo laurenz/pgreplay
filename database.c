@@ -1015,12 +1015,27 @@ int database_consumer_dry_run(replay_item *item) {
 		fstmt_set_dr = 1;
 	}
 
+	if (type == pg_execute || type == pg_exec_prepared || type == pg_connect || type == pg_disconnect) {
+		++stat_actions;
+	}
+
 	if (type == pg_execute || type == pg_exec_prepared) {
 		++stat_stmt;
 	}
 
 	if (type == pg_prepare) {
 		++stat_prep;
+	}
+
+	if (type == pg_connect) {
+		++stat_sesscnt;
+		if (++stat_sessions > stat_sessmax) {
+			stat_sessmax = stat_sessions;
+		}
+	}
+
+	if (type == pg_disconnect) {
+		--stat_sessions;
 	}
 
 	replay_free(item);
