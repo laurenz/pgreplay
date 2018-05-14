@@ -1,4 +1,4 @@
-	#include "pgreplay.h"
+#include "pgreplay.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -89,8 +89,8 @@ static struct timeval start_time;
 static struct timeval stop_time;
 
 /* remember timestamp of first statement */
-static struct timeval first_stmt_time;
-static struct timeval last_stmt_time;
+static struct timeval first_stmt_time_db;
+static struct timeval last_stmt_time_db;
 
 /* maximum seconds behind schedule */
 static time_t secs_behind = 0;
@@ -188,11 +188,7 @@ static void print_replay_statistics(int dry_run) {
 	unsigned long histtotal =
 		stat_hist[0] + stat_hist[1] + stat_hist[2] + stat_hist[3] + stat_hist[4];
 
-	if (0 == dry_run) {
-	fprintf(sf, "\nReplay statistics\n");
-	} else {
-		fprintf(sf, "\nReplay statistics (dry run)\n");
-	}
+	fprintf(sf, "\nReplay statistics%s\n", (dry_run ? " (dry run)" : ""));
 	fprintf(sf, "=================\n\n");
 
 	/* calculate total run time */
@@ -211,27 +207,31 @@ static void print_replay_statistics(int dry_run) {
 	busy_time = stat_exec.tv_usec / 1000000.0 + stat_exec.tv_sec;
 	/* calculate total session time */
 	session_time = stat_session.tv_usec / 1000000.0 + stat_session.tv_sec;
-	/*Calculate lengh of the replay file*/
-	timersub(&last_stmt_time, &first_stmt_time, &total_length);
-	length_days = total_length.tv_sec / 86400;
-	total_length.tv_sec -= length_days * 86400;
-	length_hours = total_length.tv_sec / 3600;
-	total_length.tv_sec -= length_hours * 3600;
-	length_minutes = total_length.tv_sec / 60;
-	total_length.tv_sec -= length_minutes * 60;
-	length_seconds = total_length.tv_sec + total_length.tv_usec / 1000000.0;
 
-	fprintf(sf, "Replay length:");
-	if (length_days > 0) {
-		fprintf(sf, " %d days", length_days);
+	if (1 == dry_run) {
+		/*Calculate lengh of the recorded workload*/
+		timersub(&last_stmt_time_db, &first_stmt_time_db, &total_length);
+		length_days = total_length.tv_sec / 86400;
+		total_length.tv_sec -= length_days * 86400;
+		length_hours = total_length.tv_sec / 3600;
+		total_length.tv_sec -= length_hours * 3600;
+		length_minutes = total_length.tv_sec / 60;
+		total_length.tv_sec -= length_minutes * 60;
+		length_seconds = total_length.tv_sec + total_length.tv_usec / 1000000.0;
+
+		fprintf(sf, "Duration of recorded workload:");
+		if (length_days > 0) {
+			fprintf(sf, " %d days", length_days);
+		}
+		if (length_hours > 0) {
+			fprintf(sf, " %d hours", length_hours);
+		}
+		if (length_minutes > 0) {
+			fprintf(sf, " %d minutes", length_minutes);
+		}
+		fprintf(sf, " %.3f seconds\n", length_seconds);
 	}
-	if (length_hours > 0) {
-		fprintf(sf, " %d hours", length_hours);
-	}
-	if (length_minutes > 0) {
-		fprintf(sf, " %d minutes", length_minutes);
-	}
-	fprintf(sf, " %.3f seconds\n", length_seconds);
+
 	fprintf(sf, "Speed factor for replay: %.3f\n", replay_factor);
 	fprintf(sf, "Total run time:");
 	if (hours > 0) {
@@ -659,13 +659,13 @@ int database_consumer(replay_item *item) {
 
 	/* time when the statement originally ran */
 	stmt_time = replay_get_time(item);
-	last_stmt_time.tv_sec = stmt_time->tv_sec;
-	last_stmt_time.tv_usec = stmt_time->tv_usec;
+	last_stmt_time_db.tv_sec = stmt_time->tv_sec;
+	last_stmt_time_db.tv_usec = stmt_time->tv_usec;
 
-	/* set first_stmt_time if it is not yet set */
+	/* set first_stmt_time_db if it is not yet set */
 	if (! fstmtm_set) {
-		first_stmt_time.tv_sec = stmt_time->tv_sec;
-		first_stmt_time.tv_usec = stmt_time->tv_usec;
+		first_stmt_time_db.tv_sec = stmt_time->tv_sec;
+		first_stmt_time_db.tv_usec = stmt_time->tv_usec;
 
 		fstmtm_set = 1;
 	}
@@ -690,7 +690,7 @@ int database_consumer(replay_item *item) {
 		target_time.tv_usec = stmt_time->tv_usec;
 
 		/* subtract time of first statement */
-		timersub(&target_time, &first_stmt_time, &target_time);
+		timersub(&target_time, &first_stmt_time_db, &target_time);
 
 		/* subtract skipped time */
 		if (jump_enabled) {
@@ -1004,13 +1004,13 @@ int database_consumer_dry_run(replay_item *item) {
 
 	/* time when the statement originally ran */
 	stmt_time = replay_get_time(item);
-	last_stmt_time.tv_sec = stmt_time->tv_sec;
-	last_stmt_time.tv_usec = stmt_time->tv_usec;
+	last_stmt_time_db.tv_sec = stmt_time->tv_sec;
+	last_stmt_time_db.tv_usec = stmt_time->tv_usec;
 
-	/* set first_stmt_time if it is not yet set */
+	/* set first_stmt_time_db if it is not yet set */
 	if (! fstmt_set_dr) {
-		first_stmt_time.tv_sec = stmt_time->tv_sec;
-		first_stmt_time.tv_usec = stmt_time->tv_usec;
+		first_stmt_time_db.tv_sec = stmt_time->tv_sec;
+		first_stmt_time_db.tv_usec = stmt_time->tv_usec;
 
 		fstmt_set_dr = 1;
 	}

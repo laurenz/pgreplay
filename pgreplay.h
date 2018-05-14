@@ -41,7 +41,7 @@ typedef void (replay_item_provider_finish)();
 
 typedef int (replay_item_consumer_init)(const char *, const char *, int, const char *, double);
 typedef int (replay_item_consumer)(replay_item *);
-typedef void (replay_item_consumer_finish)();
+typedef void (replay_item_consumer_finish)(int);
 
 /* hash value for session ID is computed as low byte of background PID */
 #define hash_session(x) (unsigned char)(x & 0xFF);
