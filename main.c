@@ -77,6 +77,7 @@ static void help(FILE *f) {
 	fprintf(f, "   -E <encoding>  (server encoding)\n");
 	fprintf(f, "   -j             (skip idle time during replay)\n");
 	fprintf(f, "   -X <options>   (extra libpq connect options)\n\n");
+	fprintf(f, "   -N             (dry-run, will replay file without running queries)\n\n");
 	fprintf(f, "Debugging:\n");
 	fprintf(f, "   -d <level>     (level between 1 and 3)\n");
 	fprintf(f, "   -v             (prints version and exits)\n");
@@ -84,7 +85,7 @@ static void help(FILE *f) {
 
 int main(int argc, char **argv) {
 	int arg, parse_only = 0, replay_only = 0, port = -1, csv = 0,
-		parse_opt = 0, replay_opt = 0, rc = 0;
+		parse_opt = 0, replay_opt = 0, rc = 0, dry_run = 0;
 	double factor = 1.0;
 	char *host = NULL, *encoding = NULL, *endptr, *passwd = NULL,
 		*outfilename = NULL, *infilename = NULL,
@@ -105,7 +106,7 @@ int main(int argc, char **argv) {
 
 	/* parse arguments */
 	opterr = 0;
-	while (-1 != (arg = getopt(argc, argv, "vfro:h:p:W:s:E:d:cb:e:qjX:D:U:"))) {
+	while (-1 != (arg = getopt(argc, argv, "vfro:h:p:W:s:E:d:cb:e:qjNX:D:U:"))) {
 		switch (arg) {
 			case 'f':
 				parse_only = 1;
@@ -275,6 +276,11 @@ int main(int argc, char **argv) {
 
 				extra_connstr = optarg;
 				break;
+			case 'N':
+				replay_opt = 1;
+
+				dry_run = 1;
+				break;
 			case '?':
 				if (('?' == optopt) || ('h' == optopt)) {
 					help(stdout);
@@ -351,7 +357,11 @@ int main(int argc, char **argv) {
 	} else {
 		consumer_init = &database_consumer_init;
 		consumer_finish = &database_consumer_finish;
-		consumer = &database_consumer;
+		if (0 == dry_run) {
+			consumer = &database_consumer;
+		} else {
+			consumer = &database_consumer_dry_run;
+		}
 	}
 
 	/* main loop */
@@ -397,7 +407,7 @@ int main(int argc, char **argv) {
 	}
 
 	(*provider_finish)();
-	(*consumer_finish)();
+	(*consumer_finish)(dry_run);
 
 	return rc;
 }

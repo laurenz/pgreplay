@@ -149,6 +149,7 @@ extern replay_item_consumer_finish file_consumer_finish;
 /*************************/
 
 extern replay_item_consumer database_consumer;
+extern replay_item_consumer database_consumer_dry_run;
 extern replay_item_consumer_init database_consumer_init;
 extern replay_item_consumer_finish database_consumer_finish;
 

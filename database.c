@@ -1,4 +1,4 @@
-#include "pgreplay.h"
+	#include "pgreplay.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -180,14 +180,18 @@ static int do_sleep(struct timeval *delta) {
 #endif
 }
 
-static void print_replay_statistics() {
+static void print_replay_statistics(int dry_run) {
 	int hours, minutes;
 	double seconds, runtime, session_time, busy_time;
 	struct timeval delta;
 	unsigned long histtotal =
 		stat_hist[0] + stat_hist[1] + stat_hist[2] + stat_hist[3] + stat_hist[4];
 
+	if (0 == dry_run) {
 	fprintf(sf, "\nReplay statistics\n");
+	} else {
+		fprintf(sf, "\nReplay statistics (dry run)\n");
+	}
 	fprintf(sf, "=================\n\n");
 
 	/* calculate total run time */
@@ -250,7 +254,7 @@ static void print_replay_statistics() {
 		fprintf(sf, "     over 2    seconds: %.3f%%\n", 100.0 * stat_hist[4] / histtotal);
 	}
 }
-	
+
 int database_consumer_init(const char *ignore, const char *host, int port, const char *passwd, double factor) {
 	int conn_string_len = 12;  /* port and '\0' */
 	const char *p;
@@ -362,7 +366,7 @@ int database_consumer_init(const char *ignore, const char *host, int port, const
 	return 1;
 }
 
-void database_consumer_finish() {
+void database_consumer_finish(int dry_run) {
 	debug(3, "Entering database_consumer_finish%s\n", "");
 
 	free(conn_string);
@@ -374,7 +378,7 @@ void database_consumer_finish() {
 	if (-1 == gettimeofday(&stop_time, NULL)) {
 		perror("Error calling gettimeofday");
 	} else if (sf) {
-		print_replay_statistics();
+		print_replay_statistics(dry_run);
 	}
 
 	debug(3, "Leaving database_consumer_finish%s\n", "");
@@ -840,9 +844,9 @@ int database_consumer(replay_item *item) {
 					debug(2, "Removing closed session 0x" UINT64_FORMAT "\n", replay_get_session_id(item));
 				} else {
 					debug(2, "Disconnecting database connection for session 0x" UINT64_FORMAT "\n", replay_get_session_id(item));
-	
+
 					PQfinish(found_conn->db_conn);
-	
+
 					/* remember session duration for statistics */
 					if (-1 == gettimeofday(&delta, NULL)) {
 						perror("Error calling gettimeofday");
@@ -850,11 +854,11 @@ int database_consumer(replay_item *item) {
 					} else {
 						/* subtract session start time */
 						timersub(&delta, &(found_conn->session_start), &delta);
-	
+
 						/* add to total */
 						timeradd(&stat_session, &delta, &stat_session);
 					}
-	
+
 					/* one less concurrent session */
 					--stat_sessions;
 				}
@@ -965,5 +969,24 @@ int database_consumer(replay_item *item) {
 	}
 
 	debug(3, "Leaving database_consumer%s\n", "");
+	return rc;
+}
+
+int database_consumer_dry_run(replay_item *item) {
+	const replay_type type = replay_get_type(item);
+	int rc = 0;
+	debug(3, "Entering database_consumer_dry_run%s\n", "");
+
+	if (type == pg_execute || type == pg_exec_prepared) {
+		++stat_stmt;
+	}
+
+	if (type == pg_prepare) {
+		++stat_prep;
+	}
+
+	replay_free(item);
+	debug(3, "Leaving database_consumer_dry_run%s\n", "");
+	rc = 1;
 	return rc;
 }
