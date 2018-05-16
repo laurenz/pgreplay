@@ -135,13 +135,13 @@ If all connections are idle, jump ahead to the next request instead of
 sleeping. This will speed up replay. Execution delays will still be reported
 correctly, but replay statistics will not contain the idle time.
 .TP
-\fB-N\fR
+\fB-n\fR
 Dry run mode. No connections to the server are made.
-Useful for checking if the replay file is corrupted or to have stats
-about the replay file (number of statements, original duration,...)
+Useful for checking if the replay file is corrupt or to get statistics
+about the replay file (number of statements, original duration, ...)
 .TP
 \fB-X\fR \fIoptions\fR
-Extra connection options for replay connections.  These must be libpq
+Extra connection options for replay connections. These must be libpq
 connection options specified in the format \(oqoption=value [...]\(cq.
 .SS Output options:
 .TP

@@ -89,8 +89,8 @@ static struct timeval start_time;
 static struct timeval stop_time;
 
 /* remember timestamp of first statement */
-static struct timeval first_stmt_time_db;
-static struct timeval last_stmt_time_db;
+static struct timeval first_stmt_time;
+static struct timeval last_stmt_time;
 
 /* maximum seconds behind schedule */
 static time_t secs_behind = 0;
@@ -182,82 +182,78 @@ static int do_sleep(struct timeval *delta) {
 }
 
 static void print_replay_statistics(int dry_run) {
-	int hours, minutes, length_days, length_hours, length_minutes;
-	double seconds, runtime, session_time, busy_time,length_seconds;
-	struct timeval delta, total_length;
+	int hours, minutes;
+	double seconds, runtime, session_time, busy_time;
+	struct timeval delta;
 	unsigned long histtotal =
 		stat_hist[0] + stat_hist[1] + stat_hist[2] + stat_hist[3] + stat_hist[4];
 
-	fprintf(sf, "\nReplay statistics%s\n", (dry_run ? " (dry run)" : ""));
-	fprintf(sf, "=================\n\n");
+	if (dry_run) {
+		fprintf(sf, "\nReplay statistics (dry run)\n");
+		fprintf(sf, "===========================\n\n");
 
-	/* calculate total run time */
-	delta.tv_sec = stop_time.tv_sec;
-	delta.tv_usec = stop_time.tv_usec;
-	/* subtract statement start time */
-	timersub(&delta, &start_time, &delta);
-	runtime = delta.tv_usec / 1000000.0 + delta.tv_sec;
-	/* calculate hours and minutes, subtract from delta */
-	hours = delta.tv_sec / 3600;
-	delta.tv_sec -= hours * 3600;
-	minutes = delta.tv_sec / 60;
-	delta.tv_sec -= minutes * 60;
-	seconds = delta.tv_usec / 1000000.0 + delta.tv_sec;
-	/* calculate total busy time */
-	busy_time = stat_exec.tv_usec / 1000000.0 + stat_exec.tv_sec;
-	/* calculate total session time */
-	session_time = stat_session.tv_usec / 1000000.0 + stat_session.tv_sec;
-
-	if (1 == dry_run) {
-		/*Calculate lengh of the recorded workload*/
-		timersub(&last_stmt_time_db, &first_stmt_time_db, &total_length);
-		length_days = total_length.tv_sec / 86400;
-		total_length.tv_sec -= length_days * 86400;
-		length_hours = total_length.tv_sec / 3600;
-		total_length.tv_sec -= length_hours * 3600;
-		length_minutes = total_length.tv_sec / 60;
-		total_length.tv_sec -= length_minutes * 60;
-		length_seconds = total_length.tv_sec + total_length.tv_usec / 1000000.0;
+		/* calculate lengh of the recorded workload */
+		timersub(&last_stmt_time, &first_stmt_time, &delta);
+		hours = delta.tv_sec / 3600;
+		delta.tv_sec -= hours * 3600;
+		minutes = delta.tv_sec / 60;
+		delta.tv_sec -= minutes * 60;
+		seconds = delta.tv_usec / 1000000.0 + delta.tv_sec;
 
 		fprintf(sf, "Duration of recorded workload:");
-		if (length_days > 0) {
-			fprintf(sf, " %d days", length_days);
+		if (hours > 0) {
+			fprintf(sf, " %d hours", hours);
 		}
-		if (length_hours > 0) {
-			fprintf(sf, " %d hours", length_hours);
+		if (minutes > 0) {
+			fprintf(sf, " %d minutes", minutes);
 		}
-		if (length_minutes > 0) {
-			fprintf(sf, " %d minutes", length_minutes);
-		}
-		fprintf(sf, " %.3f seconds\n", length_seconds);
-	}
+		fprintf(sf, " %.3f seconds\n", seconds);
+		fprintf(sf, "Calls to the server: %lu\n", stat_actions);
+	} else {
+		fprintf(sf, "\nReplay statistics\n");
+		fprintf(sf, "=================\n\n");
 
-	fprintf(sf, "Speed factor for replay: %.3f\n", replay_factor);
-	fprintf(sf, "Total run time:");
-	if (hours > 0) {
-		fprintf(sf, " %d hours", hours);
-	}
-	if (minutes > 0) {
-		fprintf(sf, " %d minutes", minutes);
-	}
-	fprintf(sf, " %.3f seconds\n", seconds);
-	fprintf(sf, "Maximum lag behind schedule: %lu seconds\n", (unsigned long) secs_behind);
-	fprintf(sf, "Calls to the server: %lu\n", stat_actions);
-	if (runtime > 0.0) {
-		fprintf(sf, "(%.3f calls per second)\n", stat_actions / runtime);
+		/* calculate total run time */
+		timersub(&stop_time, &start_time, &delta);
+		runtime = delta.tv_usec / 1000000.0 + delta.tv_sec;
+		/* calculate hours and minutes, subtract from delta */
+		hours = delta.tv_sec / 3600;
+		delta.tv_sec -= hours * 3600;
+		minutes = delta.tv_sec / 60;
+		delta.tv_sec -= minutes * 60;
+		seconds = delta.tv_usec / 1000000.0 + delta.tv_sec;
+		/* calculate total busy time */
+		busy_time = stat_exec.tv_usec / 1000000.0 + stat_exec.tv_sec;
+		/* calculate total session time */
+		session_time = stat_session.tv_usec / 1000000.0 + stat_session.tv_sec;
+
+		fprintf(sf, "Speed factor for replay: %.3f\n", replay_factor);
+		fprintf(sf, "Total run time:");
+		if (hours > 0) {
+			fprintf(sf, " %d hours", hours);
+		}
+		if (minutes > 0) {
+			fprintf(sf, " %d minutes", minutes);
+		}
+		fprintf(sf, " %.3f seconds\n", seconds);
+		fprintf(sf, "Maximum lag behind schedule: %lu seconds\n", (unsigned long) secs_behind);
+		fprintf(sf, "Calls to the server: %lu\n", stat_actions);
+		if (runtime > 0.0) {
+			fprintf(sf, "(%.3f calls per second)\n", stat_actions / runtime);
+		}
 	}
 
 	fprintf(sf, "Total number of connections: %lu\n", stat_sesscnt);
 	fprintf(sf, "Maximum number of concurrent connections: %lu\n", stat_sessmax);
-	if (runtime > 0.0) {
+	if (!dry_run && runtime > 0.0) {
 		fprintf(sf, "Average number of concurrent connections: %.3f\n", session_time / runtime);
 	}
-	if (session_time > 0.0) {
+	if (!dry_run && session_time > 0.0) {
 		fprintf(sf, "Average session idle percentage: %.3f%%\n", 100.0 * (session_time - busy_time) / session_time);
 	}
 
 	fprintf(sf, "SQL statements executed: %lu\n", stat_stmt - stat_prep);
-	if (stat_stmt > stat_prep) {
+	if (!dry_run && stat_stmt > stat_prep) {
 		fprintf(sf, "(%lu or %.3f%% of these completed with error)\n",
 			stat_errors, (100.0 * stat_errors) / (stat_stmt - stat_prep));
 		fprintf(sf, "Maximum number of concurrent SQL statements: %lu\n", stat_stmtmax);
@@ -659,13 +655,13 @@ int database_consumer(replay_item *item) {
 
 	/* time when the statement originally ran */
 	stmt_time = replay_get_time(item);
-	last_stmt_time_db.tv_sec = stmt_time->tv_sec;
-	last_stmt_time_db.tv_usec = stmt_time->tv_usec;
+	last_stmt_time.tv_sec = stmt_time->tv_sec;
+	last_stmt_time.tv_usec = stmt_time->tv_usec;
 
-	/* set first_stmt_time_db if it is not yet set */
+	/* set first_stmt_time if it is not yet set */
 	if (! fstmtm_set) {
-		first_stmt_time_db.tv_sec = stmt_time->tv_sec;
-		first_stmt_time_db.tv_usec = stmt_time->tv_usec;
+		first_stmt_time.tv_sec = stmt_time->tv_sec;
+		first_stmt_time.tv_usec = stmt_time->tv_usec;
 
 		fstmtm_set = 1;
 	}
@@ -690,7 +686,7 @@ int database_consumer(replay_item *item) {
 		target_time.tv_usec = stmt_time->tv_usec;
 
 		/* subtract time of first statement */
-		timersub(&target_time, &first_stmt_time_db, &target_time);
+		timersub(&target_time, &first_stmt_time, &target_time);
 
 		/* subtract skipped time */
 		if (jump_enabled) {
@@ -997,49 +993,49 @@ int database_consumer(replay_item *item) {
 
 int database_consumer_dry_run(replay_item *item) {
 	const replay_type type = replay_get_type(item);
-	int rc = 0;
 	debug(3, "Entering database_consumer_dry_run%s\n", "");
 	const struct timeval *stmt_time;
 	static int fstmt_set_dr = 0;
 
 	/* time when the statement originally ran */
 	stmt_time = replay_get_time(item);
-	last_stmt_time_db.tv_sec = stmt_time->tv_sec;
-	last_stmt_time_db.tv_usec = stmt_time->tv_usec;
+	last_stmt_time.tv_sec = stmt_time->tv_sec;
+	last_stmt_time.tv_usec = stmt_time->tv_usec;
 
-	/* set first_stmt_time_db if it is not yet set */
+	/* set first_stmt_time if it is not yet set */
 	if (! fstmt_set_dr) {
-		first_stmt_time_db.tv_sec = stmt_time->tv_sec;
-		first_stmt_time_db.tv_usec = stmt_time->tv_usec;
+		first_stmt_time.tv_sec = stmt_time->tv_sec;
+		first_stmt_time.tv_usec = stmt_time->tv_usec;
 
 		fstmt_set_dr = 1;
 	}
 
-	if (type == pg_execute || type == pg_exec_prepared || type == pg_connect || type == pg_disconnect) {
-		++stat_actions;
-	}
+	/* gather statistics */
+	++stat_actions;
 
-	if (type == pg_execute || type == pg_exec_prepared) {
-		++stat_stmt;
-	}
-
-	if (type == pg_prepare) {
-		++stat_prep;
-	}
-
-	if (type == pg_connect) {
-		++stat_sesscnt;
-		if (++stat_sessions > stat_sessmax) {
-			stat_sessmax = stat_sessions;
-		}
-	}
-
-	if (type == pg_disconnect) {
-		--stat_sessions;
+	switch (type) {
+		case pg_connect:
+			++stat_sesscnt;
+			if (++stat_sessions > stat_sessmax) {
+				stat_sessmax = stat_sessions;
+			}
+			break;
+		case pg_disconnect:
+			--stat_sessions;
+			break;
+		case pg_execute:
+		case pg_exec_prepared:
+			++stat_stmt;
+			break;
+		case pg_prepare:
+			++stat_prep;
+			break;
+		case pg_cancel:
+			break;
 	}
 
 	replay_free(item);
 	debug(3, "Leaving database_consumer_dry_run%s\n", "");
-	rc = 1;
-	return rc;
+
+	return 1;
 }

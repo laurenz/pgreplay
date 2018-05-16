@@ -1,3 +1,10 @@
+Version 1.4.0
+
+Enhancements:
+- Add a replay option "-n" that provides a "dry run" without actually
+  connecting to the database.
+  Patch by Manuel Vives.
+
 Version 1.3.0  Feb 20 2017
 
 Enhancements:

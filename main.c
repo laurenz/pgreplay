@@ -77,7 +77,7 @@ static void help(FILE *f) {
 	fprintf(f, "   -E <encoding>  (server encoding)\n");
 	fprintf(f, "   -j             (skip idle time during replay)\n");
 	fprintf(f, "   -X <options>   (extra libpq connect options)\n\n");
-	fprintf(f, "   -N             (dry-run, will replay file without running queries)\n\n");
+	fprintf(f, "   -n             (dry-run, will replay file without running queries)\n\n");
 	fprintf(f, "Debugging:\n");
 	fprintf(f, "   -d <level>     (level between 1 and 3)\n");
 	fprintf(f, "   -v             (prints version and exits)\n");
@@ -106,8 +106,12 @@ int main(int argc, char **argv) {
 
 	/* parse arguments */
 	opterr = 0;
-	while (-1 != (arg = getopt(argc, argv, "vfro:h:p:W:s:E:d:cb:e:qjNX:D:U:"))) {
+	while (-1 != (arg = getopt(argc, argv, "vfro:h:p:W:s:E:d:cb:e:qjnX:D:U:"))) {
 		switch (arg) {
+			case 'v':
+				version(stdout);
+				return 0;
+				break;
 			case 'f':
 				parse_only = 1;
 				if (replay_only) {
@@ -192,10 +196,6 @@ int main(int argc, char **argv) {
 				}
 				debug_level = (int)debug;
 				break;
-			case 'v':
-				version(stdout);
-				return 0;
-				break;
 			case 'c':
 				parse_opt = 1;
 
@@ -225,6 +225,21 @@ int main(int argc, char **argv) {
 				break;
 			case 'q':
 				backslash_quote = 1;
+				break;
+			case 'j':
+				replay_opt = 1;
+
+				jump_enabled = 1;
+				break;
+			case 'n':
+				replay_opt = 1;
+
+				dry_run = 1;
+				break;
+			case 'X':
+				replay_opt = 1;
+
+				extra_connstr = optarg;
 				break;
 			case 'D':
 				parse_opt = 1;
@@ -265,21 +280,6 @@ int main(int argc, char **argv) {
 
 				strcat(username_only, optarg);
 				strcat(username_only, "\\");
-				break;
-			case 'j':
-				replay_opt = 1;
-
-				jump_enabled = 1;
-				break;
-			case 'X':
-				replay_opt = 1;
-
-				extra_connstr = optarg;
-				break;
-			case 'N':
-				replay_opt = 1;
-
-				dry_run = 1;
 				break;
 			case '?':
 				if (('?' == optopt) || ('h' == optopt)) {

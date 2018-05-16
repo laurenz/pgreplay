@@ -1,5 +1,5 @@
-<!-- Creator     : groff version 1.19.2 -->
-<!-- CreationDate: Fri Dec 13 14:10:14 2013 -->
+<!-- Creator     : groff version 1.22.3 -->
+<!-- CreationDate: Wed May 16 06:59:57 2018 -->
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
 "http://www.w3.org/TR/html4/loose.dtd">
 <html>
@@ -8,16 +8,17 @@
 <meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
 <meta name="Content-Style" content="text/css">
 <style type="text/css">
-       p     { margin-top: 0; margin-bottom: 0; }
-       pre   { margin-top: 0; margin-bottom: 0; }
-       table { margin-top: 0; margin-bottom: 0; }
+       p       { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       pre     { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       table   { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       h1      { text-align: center }
 </style>
 <title>pgreplay</title>
 
 </head>
 <body>
 
-<h1 align=center>pgreplay</h1>
+<h1 align="center">pgreplay</h1>
 
 <a href="#NAME">NAME</a><br>
 <a href="#SYNOPSIS">SYNOPSIS</a><br>
@@ -30,16 +31,18 @@
 <hr>
 
 
+<h2>NAME
 <a name="NAME"></a>
-<h2>NAME</h2>
+</h2>
 
 
 <p style="margin-left:11%; margin-top: 1em">pgreplay
 &minus; PostgreSQL log file replayer for performance
 tests</p>
 
+<h2>SYNOPSIS
 <a name="SYNOPSIS"></a>
-<h2>SYNOPSIS</h2>
+</h2>
 
 
 
@@ -52,8 +55,9 @@ pgreplay -f</b> [<i>parse options</i>] [<b>-o</b>
 pgreplay -r</b> [<i>replay options</i>] [<b>-d</b>
 <i>level</i>] [<i>infile</i>]</p>
 
+<h2>DESCRIPTION
 <a name="DESCRIPTION"></a>
-<h2>DESCRIPTION</h2>
+</h2>
 
 
 
@@ -113,35 +117,34 @@ generated.</p>
 is useful for performance tests, particularly in the
 following situations:</p>
 
-<table width="100%" border=0 rules="none" frame="void"
+<table width="100%" border="0" rules="none" frame="void"
        cellspacing="0" cellpadding="0">
 <tr valign="top" align="left">
 <td width="11%"></td>
 <td width="1%">
 
 
-<p style="margin-top: 1em" valign="top">*</p></td>
+<p>*</p></td>
 <td width="5%"></td>
 <td width="83%">
 
 
-<p style="margin-top: 1em" valign="top">You want to compare
-the performance of your PostgreSQL application on different
-hardware or different operating systems.</p></td>
+<p>You want to compare the performance of your PostgreSQL
+application on different hardware or different operating
+systems.</p> </td></tr>
 <tr valign="top" align="left">
 <td width="11%"></td>
 <td width="1%">
 
 
-<p style="margin-top: 1em" valign="top">*</p></td>
+<p>*</p></td>
 <td width="5%"></td>
 <td width="83%">
 
 
-<p style="margin-top: 1em" valign="top">You want to upgrade
-your database and want to make sure that the new database
-version does not suffer from performance regressions that
-affect you.</p></td>
+<p>You want to upgrade your database and want to make sure
+that the new database version does not suffer from
+performance regressions that affect you.</p></td></tr>
 </table>
 
 <p style="margin-left:11%; margin-top: 1em">Moreover,
@@ -151,27 +154,29 @@ replay the workload at a higher speed. Be warned, though,
 that 500 users working at double speed is not really the
 same as 1000 users working at normal speed.</p>
 
+<h2>OPTIONS
 <a name="OPTIONS"></a>
-<h2>OPTIONS</h2>
+</h2>
 
 
 <p style="margin-left:11%; margin-top: 1em"><b>Parse
 options:</b></p>
 
-<table width="100%" border=0 rules="none" frame="void"
+<table width="100%" border="0" rules="none" frame="void"
        cellspacing="0" cellpadding="0">
 <tr valign="top" align="left">
 <td width="11%"></td>
 <td width="3%">
 
 
-<p valign="top"><b>-c</b></p></td>
+<p style="margin-top: 1em"><b>-c</b></p></td>
 <td width="8%"></td>
 <td width="78%">
 
 
-<p valign="top">Specifies that the log file is in 'csvlog'
-format (highly recommended) and not in 'stderr' format.</p></td>
+<p style="margin-top: 1em">Specifies that the log file is
+in 'csvlog' format (highly recommended) and not in 'stderr'
+format.</p> </td></tr>
 </table>
 
 <p style="margin-left:11%;"><b>-b</b> <i>timestamp</i></p>
@@ -188,29 +193,29 @@ to that timestamp will be parsed. The format is
 <b>YYYY-MM-DD HH:MM:SS.FFF</b> like in the log file. An
 optional time zone part will be ignored.</p>
 
-<table width="100%" border=0 rules="none" frame="void"
+<table width="100%" border="0" rules="none" frame="void"
        cellspacing="0" cellpadding="0">
 <tr valign="top" align="left">
 <td width="11%"></td>
 <td width="3%">
 
 
-<p style="margin-top: 1em" valign="top"><b>-q</b></p></td>
+<p><b>-q</b></p></td>
 <td width="8%"></td>
 <td width="78%">
 
 
-<p style="margin-top: 1em" valign="top">Specifies that a
-backslash in a simple string literal will escape the
-following single quote. This depends on configuration
-options like <b>standard_conforming_strings</b> and is the
-default for server version 9.0 and less.</p></td>
+<p>Specifies that a backslash in a simple string literal
+will escape the following single quote. This depends on
+configuration options like
+<b>standard_conforming_strings</b> and is the default for
+server version 9.0 and less.</p></td></tr>
 </table>
 
 <p style="margin-left:11%;"><b>-D</b> <i>database</i></p>
 
 <p style="margin-left:22%;">Only log entries related to the
-specified database name will be parsed (this option can be
+specified database will be parsed (this option can be
 specified multiple times for more than one database).</p>
 
 <p style="margin-left:11%;"><b>-U</b> <i>username</i></p>
@@ -257,23 +262,36 @@ log file, which will be used as client encoding during
 replay. If it is omitted, your default client encoding will
 be used.</p>
 
-<table width="100%" border=0 rules="none" frame="void"
+<table width="100%" border="0" rules="none" frame="void"
        cellspacing="0" cellpadding="0">
 <tr valign="top" align="left">
 <td width="11%"></td>
 <td width="3%">
 
 
-<p style="margin-top: 1em" valign="top"><b>-j</b></p></td>
+<p><b>-j</b></p></td>
 <td width="8%"></td>
 <td width="78%">
 
 
-<p style="margin-top: 1em" valign="top">If all connections
-are idle, jump ahead to the next request instead of
-sleeping. This will speed up replay. Execution delays will
-still be reported correctly, but replay statistics will not
-contain the idle time.</p></td>
+<p>If all connections are idle, jump ahead to the next
+request instead of sleeping. This will speed up replay.
+Execution delays will still be reported correctly, but
+replay statistics will not contain the idle time.</p></td></tr>
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="3%">
+
+
+<p><b>-n</b></p></td>
+<td width="8%"></td>
+<td width="78%">
+
+
+<p>Dry run mode. No connections to the server are made.
+Useful for checking if the replay file is corrupt or to get
+statistics about the replay file (number of statements,
+original duration, ...)</p></td></tr>
 </table>
 
 <p style="margin-left:11%;"><b>-X</b> <i>options</i></p>
@@ -299,58 +317,58 @@ options: <br>
 detailed information about what <b>pgreplay</b> is
 doing.</p>
 
-<table width="100%" border=0 rules="none" frame="void"
+<table width="100%" border="0" rules="none" frame="void"
        cellspacing="0" cellpadding="0">
 <tr valign="top" align="left">
 <td width="11%"></td>
 <td width="3%">
 
 
-<p style="margin-top: 1em" valign="top"><b>-v</b></p></td>
+<p><b>-v</b></p></td>
 <td width="8%"></td>
 <td width="56%">
 
 
-<p style="margin-top: 1em" valign="top">Prints the program
-version and exits.</p></td>
+<p>Prints the program version and exits.</p></td>
 <td width="22%">
-</td>
+</td></tr>
 </table>
 
+<h2>ENVIRONMENT
 <a name="ENVIRONMENT"></a>
-<h2>ENVIRONMENT</h2>
+</h2>
 
 
-<table width="100%" border=0 rules="none" frame="void"
+<table width="100%" border="0" rules="none" frame="void"
        cellspacing="0" cellpadding="0">
 <tr valign="top" align="left">
 <td width="11%"></td>
 <td width="9%">
 
 
-<p style="margin-top: 1em" valign="top"><b>PGHOST</b></p></td>
+<p style="margin-top: 1em"><b>PGHOST</b></p></td>
 <td width="2%"></td>
 <td width="70%">
 
 
-<p style="margin-top: 1em" valign="top">Specifies the
-default value for the <b>-h</b> option.</p></td>
+<p style="margin-top: 1em">Specifies the default value for
+the <b>-h</b> option.</p></td>
 <td width="8%">
-</td>
+</td></tr>
 <tr valign="top" align="left">
 <td width="11%"></td>
 <td width="9%">
 
 
-<p style="margin-top: 1em" valign="top"><b>PGPORT</b></p></td>
+<p><b>PGPORT</b></p></td>
 <td width="2%"></td>
 <td width="70%">
 
 
-<p style="margin-top: 1em" valign="top">Specifies the
-default value for the <b>-p</b> option.</p></td>
+<p>Specifies the default value for the <b>-p</b>
+option.</p> </td>
 <td width="8%">
-</td>
+</td></tr>
 </table>
 
 <p style="margin-left:11%;"><b>PGCLIENTENCODING</b></p>
@@ -358,8 +376,9 @@ default value for the <b>-p</b> option.</p></td>
 <p style="margin-left:22%;">Specifies the default value for
 the <b>-E</b> option.</p>
 
+<h2>LIMITATIONS
 <a name="LIMITATIONS"></a>
-<h2>LIMITATIONS</h2>
+</h2>
 
 
 
@@ -367,99 +386,97 @@ the <b>-E</b> option.</p>
 can only replay what is logged by PostgreSQL. This leads to
 some limitations:</p>
 
-<table width="100%" border=0 rules="none" frame="void"
+<table width="100%" border="0" rules="none" frame="void"
        cellspacing="0" cellpadding="0">
 <tr valign="top" align="left">
 <td width="11%"></td>
 <td width="1%">
 
 
-<p style="margin-top: 1em" valign="top">*</p></td>
+<p>*</p></td>
 <td width="5%"></td>
 <td width="83%">
 
 
-<p style="margin-top: 1em" valign="top"><b>COPY</b>
-statements will not be replayed, because the copy data are
-not logged.</p></td>
+<p><b>COPY</b> statements will not be replayed, because the
+copy data are not logged.</p></td></tr>
 <tr valign="top" align="left">
 <td width="11%"></td>
 <td width="1%">
 
 
-<p style="margin-top: 1em" valign="top">*</p></td>
+<p>*</p></td>
 <td width="5%"></td>
 <td width="83%">
 
 
-<p style="margin-top: 1em" valign="top">Fast-path API
-function calls are not logged and will not be replayed.
-Unfortunately, this includes the Large Object API.</p></td>
+<p>Fast-path API function calls are not logged and will not
+be replayed. Unfortunately, this includes the Large Object
+API.</p> </td></tr>
 <tr valign="top" align="left">
 <td width="11%"></td>
 <td width="1%">
 
 
-<p style="margin-top: 1em" valign="top">*</p></td>
+<p>*</p></td>
 <td width="5%"></td>
 <td width="83%">
 
 
-<p style="margin-top: 1em" valign="top">Since the log file
-is always in the server encoding (which you can specify with
-the <b>-E</b> switch of <b>pgreplay</b>), all <b>SET
-client_encoding</b> statements will be ignored.</p></td>
+<p>Since the log file is always in the server encoding
+(which you can specify with the <b>-E</b> switch of
+<b>pgreplay</b>), all <b>SET client_encoding</b> statements
+will be ignored.</p></td></tr>
 <tr valign="top" align="left">
 <td width="11%"></td>
 <td width="1%">
 
 
-<p style="margin-top: 1em" valign="top">*</p></td>
+<p>*</p></td>
 <td width="5%"></td>
 <td width="83%">
 
 
-<p style="margin-top: 1em" valign="top">Since the
-preparation time of prepared statements is not logged
-(unless <b>log_min_messages</b> is <b>debug2</b> or more),
-these statements will be prepared immediately before they
-are first executed during replay.</p></td>
+<p>Since the preparation time of prepared statements is not
+logged (unless <b>log_min_messages</b> is <b>debug2</b> or
+more), these statements will be prepared immediately before
+they are first executed during replay.</p></td></tr>
 <tr valign="top" align="left">
 <td width="11%"></td>
 <td width="1%">
 
 
-<p style="margin-top: 1em" valign="top">*</p></td>
+<p>*</p></td>
 <td width="5%"></td>
 <td width="83%">
 
 
-<p style="margin-top: 1em" valign="top">Because the log
-file contains only text, query parameters and return values
-will always be in text and never in binary format. If you
-use binary mode to, say, transfer large binary data,
-<b>pgreplay</b> can cause significantly more network traffic
-than the original run.</p></td>
+<p>Because the log file contains only text, query
+parameters and return values will always be in text and
+never in binary format. If you use binary mode to, say,
+transfer large binary data, <b>pgreplay</b> can cause
+significantly more network traffic than the original
+run.</p> </td></tr>
 <tr valign="top" align="left">
 <td width="11%"></td>
 <td width="1%">
 
 
-<p style="margin-top: 1em" valign="top">*</p></td>
+<p>*</p></td>
 <td width="5%"></td>
 <td width="83%">
 
 
-<p style="margin-top: 1em" valign="top">Sometimes, if a
-connection takes longer to complete, the session ID
-unexpectedly changes in the PostgreSQL log file. This causes
-<b>pgreplay</b> to treat the session as two different ones,
-resulting in an additional connection. This is arguably a
-bug in PostgreSQL.</p></td>
+<p>Sometimes, if a connection takes longer to complete, the
+session ID unexpectedly changes in the PostgreSQL log file.
+This causes <b>pgreplay</b> to treat the session as two
+different ones, resulting in an additional connection. This
+is arguably a bug in PostgreSQL.</p></td></tr>
 </table>
 
+<h2>AUTHOR
 <a name="AUTHOR"></a>
-<h2>AUTHOR</h2>
+</h2>
 
 
 <p style="margin-left:11%; margin-top: 1em">Written by
