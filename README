@@ -167,6 +167,10 @@ This leads to some limitations:
 - Since the preparation time of prepared statements is not logged (unless
   log_min_messages is debug2 or more), these statements will be prepared
   immediately before they are first executed during replay.
+- All parameters of prepared statements are logged as strings, no matter
+  what type was originally specified during bind.
+  This can cause errors during replay with expressions like "$1 + $2",
+  which will cause the error "operator is not unique: unknown + unknown".
 
 While pgreplay makes sure that commands are sent to the server in the
 order in which they were originally executed, there is no way to guarantee
