@@ -53,13 +53,19 @@ typedef void (replay_item_consumer_finish)(int);
 #	define UINT32_FORMAT "%hx"
 #endif
 
-#ifdef WINDOWS
-#	define UINT64_FORMAT "%I64x"
+#ifdef HAVE_INTTYPES_H
+#	include <inttypes.h>
+#	define UINT64_FORMAT "%" PRIu64
 #else
-#	if SIZEOF_UNSIGNED_LONG == 8
-#		define UINT64_FORMAT "%lx"
+/* fall back to guessing */
+#	ifdef WINDOWS
+#		define UINT64_FORMAT "%I64x"
 #	else
-#		define UINT64_FORMAT "%llx"
+#		if SIZEOF_UNSIGNED_LONG == 8
+#			define UINT64_FORMAT "%lx"
+#		else
+#			define UINT64_FORMAT "%llx"
+#		endif
 #	endif
 #endif
 
