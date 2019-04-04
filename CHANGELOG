@@ -5,6 +5,12 @@ Enhancements:
   connecting to the database.
   Patch by Manuel Vives.
 
+Bugfixes:
+- Fix Makefile to call "install" portably.
+  It used to call "$(INSTALL) -D", which works on some, but not all systems
+  (MAC OS X is an example where it doesn't work).
+  Report by Jeff Doering.
+
 Version 1.3.0  Feb 20 2017
 
 Enhancements:

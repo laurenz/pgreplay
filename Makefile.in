@@ -49,13 +49,16 @@ test: $(EXE) test/runtest.sh
 install: install_bin install_man
 
 install_bin: $(EXE)
-	$(INSTALL) -D -m 0755 $< $(DESTDIR)$(bindir)/$<
+	$(INSTALL) -d $(DESTDIR)$(bindir)
+	$(INSTALL) -m 0755 $< $(DESTDIR)$(bindir)/$<
 
 install_man: $(EXE).1
-	$(INSTALL) -D -m 0644 $< $(DESTDIR)$(mandir)/man1/$<
+	$(INSTALL) -d $< $(DESTDIR)$(mandir)/man1
+	$(INSTALL) -m 0644 $< $(DESTDIR)$(mandir)/man1/$<
 
 install_html: $(EXE).html
-	$(INSTALL) -D -m 0644 $< $(DESTDIR)$(htmldir)/$<
+	$(INSTALL) -d $(DESTDIR)$(htmldir)
+	$(INSTALL) -m 0644 $< $(DESTDIR)$(htmldir)/$<
 
 .c.o: $(HEADERS)
 	$(CC) -c $(CFLAGS) -DVERSION='"$(VERSION)"' $<
