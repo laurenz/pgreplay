@@ -53,7 +53,7 @@ install_bin: $(EXE)
 	$(INSTALL) -m 0755 $< $(DESTDIR)$(bindir)/$<
 
 install_man: $(EXE).1
-	$(INSTALL) -d $< $(DESTDIR)$(mandir)/man1
+	$(INSTALL) -d $(DESTDIR)$(mandir)/man1
 	$(INSTALL) -m 0644 $< $(DESTDIR)$(mandir)/man1/$<
 
 install_html: $(EXE).html
