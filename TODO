@@ -1,0 +1,7 @@
+This is a list of things that could be improved.
+Help is welcome!
+
+- Use "single-row mode" with PQsetSingleRowMode.
+  This would reduce the memory requirements for large result sets.
+
+  Noted by Thomas Dziedzic in #15.
