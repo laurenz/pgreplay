@@ -1,5 +1,5 @@
-About pgreplay
-==============
+pgreplay - record and replay real-life database workloads
+=========================================================
 
 pgreplay reads a PostgreSQL log file (*not* a WAL file), extracts the
 SQL statements and executes them in the same order and with the original
@@ -24,19 +24,20 @@ situations:
 
 Moreover, pgreplay can give you some feeling as to how your application
 *might* scale by allowing you to try to replay the workload at a higher
-speed (if that is possible, see "implementation details" below).
+speed (if that is possible; see
+[implementation details](#implementation-details) below).
 Be warned, though, that 500 users working at double speed is not really
 the same as 1000 users working at normal speed.
 
 While pgreplay will find out if your database application will encounter
 performance problems, it does not provide a lot of help in the analysis of
 the cause of these problems.  Combine pgreplay with a specialized analysis
-program like pgFouine (http://pgfouine.projects.postgresql.org/) for that.
+program like [pgBadger](https://pgbadger.darold.net/) for that.
 
 As an additional feature, pgreplay lets you split the replay in two
 parts: you can parse the log file and create a "replay file", which
 contains just the statements to be replayed and is hopefully much
-smaller than the original log file.
+smaller than the original log file.  
 Such a replay file can then be run against a database.
 
 pgreplay is written by Laurenz Albe and is inspired by "Playr"
@@ -48,43 +49,42 @@ Installation
 pgreplay needs PostgreSQL 8.0 or better.
 
 It is supposed to compile without warnings and run on all platforms
-supported by PostgreSQL.
+supported by PostgreSQL.  
 Since I only got to test it on Linux, AIX, FreeBSD and Windows, there may be
 problems with other platforms. I am interested in reports and fixes for
-these platforms.
+these platforms.  
 On Windows, only the MinGW build environment is supported (I have no
 other compiler). That means that there is currently no 64-bit build
 for Windows (but a 32-bit executable should work fine anywhere).
 
-To build pgreplay, you will need the pg_config utility. If you installed
+To build pgreplay, you will need the `pg_config` utility. If you installed
 PostgreSQL using installation packages, you will probably have to install
-the development package that contains pg_config and the header files.
+the development package that contains `pg_config` and the header files.
 
-If PostgreSQL is installed in the default location, the installation
-process will look like this:
+If `pg_config` is on the `PATH`, the installation process will look like this:
 
-unpack the tarball
-./configure
-make
-make test     (optional, described below)
-make install  (as superuser)
+- unpack the tarball
+- `./configure'
+- `make'
+- `make test`     (optional, described below)
+- `make install`  (as superuser)
 
 If your PostgreSQL installation is in a nonstandard directory, you
-will have to use the --with-postgres=<path to location of pg_config>
-switch of "configure".
+will have to use the `--with-postgres=<path to location of pg_config>`
+option of `configure`.
 
 Unless you link it statically, pgreplay requires the PostgreSQL client 
 shared library on the system where it is run.
 
 The following utilities are only necessary if you intend to develop pgreplay:
-- autoconf 2.62 or better to generate 'configure'
-- GNU tar to 'make tarball' (unless you want to roll it by hand)
-- groff to make the HTML documentation with 'make html'
+- autoconf 2.62 or better to generate `configure`
+- GNU tar to `make tarball` (unless you want to roll it by hand)
+- groff to make the HTML documentation with `make html`
 
 Testing
 -------
 
-You can run a test on pgreplay before installing by running "make test".
+You can run a test on pgreplay before installing by running `make test`.
 This will parse sample log files and check that the result is as
 expected.
 
@@ -93,27 +93,27 @@ works as expected.  For this you need psql installed and a PostgreSQL server
 running (on this or another machine) so that the following command
 will succeed:
 
-psql -U postgres -d postgres -l
+    psql -U postgres -d postgres -l
 
-You can setup the PGPORT and PGHOST environment variables and a password
+You can set up the `PGPORT` and `PGHOST` environment variables and a password
 file for the user if necessary.
 
 Usage
 =====
 
 First, you will need to record your real-life workload.
-For that, set the following parameters in postgresql.conf:
+For that, set the following parameters in `postgresql.conf`:
 
-log_min_messages = error  (or more)
-   (if you know that you have no cancel requests, 'log' will do)
-log_min_error_statement = log  (or more)
-log_connections = on
-log_disconnections = on
-log_line_prefix = '%m|%u|%d|%c|'  (if you don't use CSV logging)
-log_statement = 'all'
-lc_messages must be set to English (the encoding does not matter)
-bytea_output = escape  (from version 9.0 on, only if you want to replay
-                        the log on 8.4 or earlier)
+- `log_min_messages = error`  (or more)  
+   (if you know that you have no cancel requests, `log` will do)
+- `log_min_error_statement = log`  (or more)
+- `log_connections = on`
+- `log_disconnections = on`
+- `log_line_prefix = '%m|%u|%d|%c|'`  (if you don't use CSV logging)
+- `log_statement = 'all'`
+- `lc_messages` must be set to English (the encoding does not matter)
+- `bytea_output = escape`  (from version 9.0 on, only if you want to replay
+                            the log on 8.4 or earlier)
 
 It is highly recommended that you use CSV logging, because anything that
 the PostgreSQL server or any loaded modules write to standard error will
@@ -121,9 +121,9 @@ be written to the stderr log and might confuse the parser.
 
 Then let your users have their way with the database.
 
-Make sure that you have a pg_dumpall of the database cluster from the time
-of the start of your log file (or use the -b option with the time of your
-backup).  Alternatively, you can use point in time recovery to clone your
+Make sure that you have a `pg_dumpall` of the database cluster from the time
+of the start of your log file (or use the `-b` option with the time of your
+backup).  Alternatively, you can use point-in-time-recovery to clone your
 database at the appropriate time.
 
 When you are done, restore the database (in the "before" state) to the
@@ -136,11 +136,11 @@ if your clients connect over the network, run pgreplay on a different
 machine from where the database server is running.
 
 Since passwords are not logged (and pgreplay consequently has no way of
-knowing them), you have two options: either change pg_hba.conf on the
-test database to allow "trust" authentication or (if that is unacceptable)
+knowing them), you have two options: either change `pg_hba.conf` on the
+test database to allow `trust` authentication or (if that is unacceptable)
 create a password file as described by the PostgreSQL documentation.
 Alternatively, you can change the passwords of all application users
-to one single password that you supply to pgreplay with the -W option.
+to one single password that you supply to pgreplay with the `-W` option.
 
 Limitations
 ===========
@@ -148,8 +148,8 @@ Limitations
 pgreplay can only replay what is logged by PostgreSQL.
 This leads to some limitations:
 
-- COPY statements will not be replayed, because the copy data are not logged.
-  I could have supported COPY TO statements, but that would have imposed a
+- `COPY` statements will not be replayed, because the copy data are not logged.
+  I could have supported `COPY TO` statements, but that would have imposed a
   requirement that the directory structure on the replay system must be
   identical to the original machine.
   And if your application runs on the same machine as your database and they
@@ -158,19 +158,19 @@ This leads to some limitations:
 - Fast-path API function calls are not logged and will not be replayed.
   Unfortunately, this includes the Large Object API.
 - Since the log file is always written in the database encoding (which you
-  can specify with the -E switch of pgreplay), all "SET client_encoding"
+  can specify with the `-E` switch of pgreplay), all `SET client_encoding`
   statements will be ignored.
 - If your cluster contains databases with different encoding, the log file
   will have mixed encoding as well.  You cannot use pgreplay well in such
   an environment, because many statements against databases whose
-  encoding does not match the -E switch will fail.
+  encoding does not match the `-E` switch will fail.
 - Since the preparation time of prepared statements is not logged (unless
-  log_min_messages is debug2 or more), these statements will be prepared
+  `log_min_messages` is `debug2` or more), these statements will be prepared
   immediately before they are first executed during replay.
 - All parameters of prepared statements are logged as strings, no matter
   what type was originally specified during bind.
-  This can cause errors during replay with expressions like "$1 + $2",
-  which will cause the error "operator is not unique: unknown + unknown".
+  This can cause errors during replay with expressions like `$1 + $2`,
+  which will cause the error `operator is not unique: unknown + unknown`.
 
 While pgreplay makes sure that commands are sent to the server in the
 order in which they were originally executed, there is no way to guarantee
@@ -204,27 +204,27 @@ workload on a system that behaves differently.
 
 As an example, consider this (simplified) log file:
 
-session 1|connect
-session 2|connect
-session 1|statement: BEGIN
-session 1|statement: SELECT something(1)
-session 2|statement: BEGIN
-session 2|statement: SELECT something(2)
-session 1|statement: SELECT something(3)
-session 2|statement: ROLLBACK
-session 2|disconnect
-session 1|statement: COMMIT
-session 2|disconnect
+    session 1|connect
+    session 2|connect
+    session 1|statement: BEGIN
+    session 1|statement: SELECT something(1)
+    session 2|statement: BEGIN
+    session 2|statement: SELECT something(2)
+    session 1|statement: SELECT something(3)
+    session 2|statement: ROLLBACK
+    session 2|disconnect
+    session 1|statement: COMMIT
+    session 2|disconnect
 
-This will cause two database connections to be opened, so the ROLLBACK in
+This will cause two database connections to be opened, so the `ROLLBACK` in
 session 2 will not affect session 1.
-If "SELECT something(2)" takes longer than expected (longer than it did in
-the original), that will not stall the execution of "SELECT something(3)"
-because it runs on a different connection.  The ROLLBACK, however, has to
+If `SELECT something(2)` takes longer than expected (longer than it did in
+the original), that will not stall the execution of `SELECT something(3)`
+because it runs on a different connection.  The `ROLLBACK`, however, has to
 wait for the completion of the long statement.  Since the order of statements
-is preserved, the COMMIT on session 1 will have to wait until the ROLLBACK
+is preserved, the `COMMIT` on session 1 will have to wait until the `ROLLBACK`
 on session 2 has started (but it does not have to wait for the completion of
-the ROLLBACK).
+the `ROLLBACK`).
 
 pgreplay is implemented in C and makes heavy use of asynchronous command
 processing (which is the reason why it is implemented in C).
@@ -243,106 +243,30 @@ byte order.
 
 Each record in the replay file corresponds to one database operation
 and is constructed as follows:
-- 4-byte unsigned int: log file timestamp in seconds since 2000-01-01
-- 4-byte unsigned int: fractional part of log file timestamp in microseconds
-- 8-byte unsigned int: session id
-- 1-byte unsigned int: type of the database action:
-    0 is connect
-    1 is disconnect
-    2 is simple statement execution
-    3 is statement preparation
-    4 is execution of a prepared statement
-    5 is cancel request
+- 4-byte `unsigned int`: log file timestamp in seconds since 2000-01-01
+- 4-byte `unsigned int`: fractional part of log file timestamp in microseconds
+- 8-byte `unsigned int`: session id
+- 1-byte `unsigned int`: type of the database action:
+  - 0 is connect
+  - 1 is disconnect
+  - 2 is simple statement execution
+  - 3 is statement preparation
+  - 4 is execution of a prepared statement
+  - 5 is cancel request
 - The remainder of the record is specific to the action, strings are stored
   with a preceeding 4-byte unsigned int that contains the length.
   Read the source for details.
 - Each record is terminated by a new-line character (byte 0x0A).
 
-pgreplay and pgFouine
-=====================
-
-pgFouine (http://pgfouine.projects.postgresql.org/) is a PostgreSQL log file
-analyzer that allows you to understand your database workload and find
-bottlenecks and slow queries.
-
-Because both pgreplay and pgFouine target performance questions, it would be
-nice if they could operate on the same log files.  But pgFouine needs the
-statement to be logged along with its duration, which is logged at the end of
-query execution, whereas pgreplay needs it at execution start time, so they
-cannot use the same log file.
-
-If you use CSV logging, there is a workaround with which you can turn a
-log file for pgFouine into a log file for pgreplay.  The following describes
-this procedure for PostgreSQL 8.4 (there is an additional field in the CSV log
-from 9.0 on, and pgFouine currently does not work with the new format).
-
-For recording, use the following configuration parameters:
-
-log_destination = 'csvlog'
-redirect_stderr = on
-log_min_messages = error
-log_min_error_statement = log
-log_connections = on
-log_disconnections = on
-log_duration = off
-log_min_duration_statement = 0
-log_statement = 'none'
-lc_messages must be set to English (the encoding does not matter)
-
-The resulting CSV log file can be parsed by pgFouine.  Then you need a
-PostgreSQL database to create a new CSV file as follows:
-
-CREATE TABLE postgres_log
-(
-  log_time timestamp(3) with time zone,
-  user_name text,
-  database_name text,
-  process_id integer,
-  connection_from text,
-  session_id text,
-  session_line_num bigint,
-  command_tag text,
-  session_start_time timestamp with time zone,
-  virtual_transaction_id text,
-  transaction_id bigint,
-  error_severity text,
-  sql_state_code text,
-  message text,
-  detail text,
-  hint text,
-  internal_query text,
-  internal_query_pos integer,
-  context text,
-  query text,
-  query_pos integer,
-  location text
-);
-
-COPY postgres_log FROM '/path/to/for_pgfouine.csv' WITH CSV;
-
-UPDATE postgres_log SET
-  log_time = log_time - CAST(substring(message FROM E'\\d+.\\d* ms') AS interval),
-  message = regexp_replace(message, E'^duration: \\d+.\\d* ms  ', '')
-WHERE error_severity = 'LOG' AND message ~ E'^duration: \\d+.\\d* ms  ';
-
-COPY (SELECT
-        to_char(log_time, 'YYYY-MM-DD HH24:MI:SS.MS TZ'),
-        user_name, database_name, process_id, connection_from,
-        session_id, session_line_num, command_tag, session_start_time,
-        virtual_transaction_id, transaction_id, error_severity,
-        sql_state_code, message, detail, hint, internal_query,
-        internal_query_pos, context, query, query_pos, location
-      FROM postgres_log ORDER BY log_time, session_line_num)
-  TO '/path/to/for_pgreplay.csv' WITH CSV;
-
-The resulting "for_pgreplay.csv" can be parsed by pgreplay.
-
 Support
 =======
 
-If you have a problem or question, the preferred option is to send an
-https://github.com/laurenz/pgreplay/issues
+If you have a problem or question, the preferred option is to [open an
+issue](https://github.com/laurenz/pgreplay/issues).
 This requires a GitHub account.
+
+Professional support can be bought from
+[Cybertec](https://www.cybertec-postgresql.com/).
 
 TODO list
 =========
