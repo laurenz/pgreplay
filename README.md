@@ -64,8 +64,8 @@ the development package that contains `pg_config` and the header files.
 If `pg_config` is on the `PATH`, the installation process will look like this:
 
 - unpack the tarball
-- `./configure'
-- `make'
+- `./configure`
+- `make`
 - `make test`     (optional, described below)
 - `make install`  (as superuser)
 
