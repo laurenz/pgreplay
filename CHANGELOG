@@ -10,6 +10,10 @@ Bugfixes:
   It used to call "$(INSTALL) -D", which works on some, but not all systems
   (MAC OS X is an example where it doesn't work).
   Report by Jeff Doering.
+- Fix crash after replay of DEALLOCATE ALL.
+  This caused a crash the next time prepared statements were deleted, for
+  example at the end of the database session.
+  Reported by Wan Shen Lim.
 
 Version 1.3.0  Feb 20 2017
 

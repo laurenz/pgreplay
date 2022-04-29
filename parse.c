@@ -801,6 +801,7 @@ static void remove_all_pstmts(struct connection * conn) {
 		free(pstmt2->name);
 		free(pstmt2);
 	}
+	conn->statements = NULL;
 
 	debug(3, "Leaving remove_all_pstmts%s\n", "");
 	return;
