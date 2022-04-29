@@ -26,3 +26,6 @@ test/
 # other versioning systems
 .svn
 CVS
+
+# M4 cache
+autom4te.cache/
