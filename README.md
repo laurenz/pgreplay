@@ -81,6 +81,18 @@ The following utilities are only necessary if you intend to develop pgreplay:
 - GNU tar to `make tarball` (unless you want to roll it by hand)
 - groff to make the HTML documentation with `make html`
 
+Docker
+------
+You can use the provided `Dockerfile` to run `pgreplay`.
+Build the image:
+```
+# build the image
+docker build -t laurenz/pgreplay -f Dockerfile .
+
+# and run it
+docker run --rm -ti -v $(pwd):/app -w /app laurenz/pgreplay pgreplay -h
+```
+
 Testing
 -------
 
