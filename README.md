@@ -83,8 +83,12 @@ The following utilities are only necessary if you intend to develop pgreplay:
 
 Docker
 ------
-You can use the provided `Dockerfile` to run `pgreplay`.
-Build the image:
+
+The `Dockerfile` provided with the software can be used as a starting
+point for creating a container that runs pgreplay.  Adapt is as necessary.
+
+Here are commands to build and run the container:
+
 ```
 # build the image
 docker build -t laurenz/pgreplay -f Dockerfile .
