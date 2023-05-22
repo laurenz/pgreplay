@@ -15,14 +15,14 @@ if [ $? -ne 0 ]; then
 	rm -f parse_err.rf parse_err.out parse_err.err
 	exit 1
 fi
-diff -b parse_err.err parse_err.exp >parse_err.diff
+diff -u -b parse_err.err parse_err.exp >parse_err.diff
 if [ $? -ne 0 ]; then
 	echo "unexpected messages, difference to expected:"
 	cat parse_err.diff
 	rm -f parse_err.rf parse_err.out parse_err.err parse_err.diff
 	exit 1
 fi
-diff -b parse_err.out parse_err_out.exp >parse_err.diff
+diff -u -b parse_err.out parse_err_out.exp >parse_err.diff
 if [ $? -ne 0 ]; then
 	echo "unexpected output, difference to expected:"
 	cat parse_err.diff
@@ -47,14 +47,14 @@ if [ $? -ne 0 ]; then
 	rm -f parse_csv.rf parse_csv.out parse_csv.err
 	exit 1
 fi
-diff -b parse_csv.err parse_csv.exp >parse_csv.diff
+diff -u -b parse_csv.err parse_csv.exp >parse_csv.diff
 if [ $? -ne 0 ]; then
 	echo "unexpected messages, difference to expected:"
 	cat parse_csv.diff
 	rm -f parse_csv.rf parse_csv.out parse_csv.err parse_csv.diff
 	exit 1
 fi
-diff -b parse_csv.out parse_csv_out.exp >parse_csv.diff
+diff -u -b parse_csv.out parse_csv_out.exp >parse_csv.diff
 if [ $? -ne 0 ]; then
 	echo "unexpected output, difference to expected:"
 	cat parse_csv.diff
@@ -86,14 +86,14 @@ if [ $? -ne 0 ]; then
 	rm -f replay.out replay.err
 	exit 1
 fi
-diff -b replay.out replay_out.exp >replay.diff
+diff -u -b replay.out replay_out.exp >replay.diff
 if [ $? -ne 0 ]; then
 	echo "unexpected output, difference to expected:"
 	cat replay.diff
 	rm -f replay.out replay.err replay.diff
 	exit 1
 fi
-diff -b replay.err replay_err.exp >replay.diff
+diff -u -b replay.err replay_err.exp >replay.diff
 if [ $? -ne 0 ]; then
 	echo "unexpected messages, difference to expected:"
 	cat replay.diff
@@ -108,14 +108,14 @@ if [ $? -ne 0 ]; then
 	rm -f dryrun.out dryrun.err
 	exit 1
 fi
-diff -b dryrun.out dryrun_out.exp >dryrun.diff
+diff -u -b dryrun.out dryrun_out.exp >dryrun.diff
 if [ $? -ne 0 ]; then
 	echo "unexpected output, difference to expected:"
 	cat dryrun.diff
 	rm -f dryrun.out dryrun.err dryrun.diff
 	exit 1
 fi
-diff -b dryrun.err dryrun_err.exp >dryrun.diff
+diff -u -b dryrun.err dryrun_err.exp >dryrun.diff
 if [ $? -ne 0 ]; then
 	echo "unexpected messages, difference to expected:"
 	cat dryrun.diff
