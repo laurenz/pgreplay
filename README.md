@@ -282,7 +282,7 @@ issue](https://github.com/laurenz/pgreplay/issues).
 This requires a GitHub account.
 
 Professional support can be bought from
-[Cybertec](https://www.cybertec-postgresql.com/).
+[CYBERTEC PostgreSQL International GmbH](https://www.cybertec-postgresql.com/).
 
 TODO list
 =========
