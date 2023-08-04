@@ -55,7 +55,7 @@ typedef void (replay_item_consumer_finish)(int);
 
 #ifdef HAVE_INTTYPES_H
 #	include <inttypes.h>
-#	define UINT64_FORMAT "%" PRIu64
+#	define UINT64_FORMAT "%" PRIx64
 #else
 /* fall back to guessing */
 #	ifdef WINDOWS

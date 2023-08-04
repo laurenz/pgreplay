@@ -114,6 +114,11 @@ will succeed:
 You can set up the `PGPORT` and `PGHOST` environment variables and a password
 file for the user if necessary.
 
+There have to be a login roles named `hansi` and `postgres` in the database,
+and both users must be able to connect without a password.  Only `postgres`
+will be used to run actual SQL statements.  The regression test will create
+a table `runtest` and use it, and it will drop the table when it is done.
+
 Usage
 =====
 
