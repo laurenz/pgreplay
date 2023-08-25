@@ -279,6 +279,44 @@ and is constructed as follows:
   Read the source for details.
 - Each record is terminated by a new-line character (byte 0x0A).
 
+
+Using for polardb
+======
+- make sure pg_stat_statements, plpgsql, system_stats was installed.system_stats install methods refer to https://github.com/EnterpriseDB/system_stats.
+```sql
+postgres=# create extension plpgsql;
+postgres=# create extension pg_stat_statements;
+postgres=# create extension system_stats;
+postgres=# \dx
+                                     List of installed extensions
+        Name        | Version |   Schema   |                        Description                        
+--------------------+---------+------------+-----------------------------------------------------------
+ pg_stat_statements | 1.6     | public     | track execution statistics of all SQL statements executed
+ plpgsql            | 1.0     | pg_catalog | PL/pgSQL procedural language
+ system_stats       | 1.0     | public     | EnterpriseDB system statistics for PostgreSQL
+(3 rows)
+```
+
+- postgres.conf configure
+```sh
+# log setting for gpreplay 
+log_min_messages = error 
+# (if you know that you have no cancel requests, log will do)
+log_min_error_statement = log 
+log_connections = on
+log_disconnections = on
+log_line_prefix = '%t|%u|%d|%c|%N|%L|' 
+log_statement = 'all' 
+# lc_messages must be set to English (the encoding does not matter)
+bytea_output = escape 
+# (from version 9.0 on, only if you want to replay the log on 8.4 or earlier)
+# polar_auditlog_max_query_length = 49152
+polar_auditlog_max_query_length_limit = false 
+```
+- run read audit log from $PGDATA/log/replay_xxx.log and replay sql to databse, reporting monitor info every 3 seconds.
+```sh
+./pgreplay -P -m 3   -h 127.0.0.1 -p 5432 -W benchmarksql $PGDATA/log/replay_xxx.log
+```
 Support
 =======
 

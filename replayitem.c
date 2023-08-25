@@ -6,15 +6,6 @@
 #include <assert.h>
 #include <sys/time.h>
 
-/* type for one replay line */
-struct replay_item {
-	struct timeval time;
-	uint64_t session_id;
-	replay_type type;
-	uint16_t count;
-	char **data;
-};
-
 /* special replay_item that signals end-of-file */
 static replay_item end_replay_item = {{0, 0}, 0, -1, 0, NULL};
 replay_item * const end_item = &end_replay_item;
@@ -219,6 +210,11 @@ void replay_free(replay_item *r) {
 	}
 	if (r->count) {
 		free(r->data);
+	}
+
+	if(polardb_audit){
+		free(r->search_path);
+		free(r->prepare_parse);
 	}
 	free(r);
 

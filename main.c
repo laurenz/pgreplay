@@ -25,6 +25,25 @@ int jump_enabled = 0;
 
 /* extra connect options specified with the -X option */
 char *extra_connstr;
+/* indicates whether input file is from polardb */
+int polardb_audit = 0;
+
+char monitor_sql[] =  
+	" select 1 as id,'cpu_use' as monitor_name ,100 - split_part((select pg_sys_cpu_usage_info())::text,',', 4 )::decimal as num union"
+	" select 2,'mem_use' as monitor_name , (( split_part(replace((select pg_sys_memory_info())::text,'(','') , ',',1)::decimal  - "
+	" split_part(replace((select pg_sys_memory_info())::text,'(','') , ',',7)::decimal  )"
+	" /  split_part(replace((select pg_sys_memory_info())::text,'(','') , ',',1)::decimal)::decimal(4,2)*100  as  num union"
+	" select 3,'read_count' monitor_name, sum(io_count) num from (select split_part(pg_sys_io_analysis_info()::text,',',2)::bigint as io_count) as a union "
+	" select 4,'write_count' monitor_name, sum(io_count) num from (select split_part(pg_sys_io_analysis_info()::text,',',3)::bigint as io_count) as a union "
+	" select 5,'read_bytes' monitor_name, sum(io_count) num from (select split_part(pg_sys_io_analysis_info()::text,',',4)::bigint as io_count) as a union "
+	" select 6,'write_bytes' monitor_name, sum(io_count) num from (select split_part(pg_sys_io_analysis_info()::text,',',5)::bigint as io_count) as a union"
+	" select 7,'disk_space' monitor_name, sum(disk_space / 1024 / 1024) num from (select split_part(pg_sys_disk_info()::text,',',7)::bigint as disk_space) as a union"
+	" select 8,'active_conn' as monitor_name, count(query) as num from pg_stat_activity where state = 'active' and backend_type = 'client backend'  union"
+	" select 9,'total_conn' as monitor_name, count(query) as num from pg_stat_activity  union"
+	" select 10,'load5_value' monitor_name,  split_part(pg_sys_load_avg_info()::text,',',2)::decimal as num union"
+	" select 11,'load10_value' monitor_name,  split_part(pg_sys_load_avg_info()::text,',',3)::decimal as num  union"
+	" select 12,'tps' as monitor_name,split_part(txid_current_snapshot()::text,':',1)::integer as num union"
+	" select 13,'qps' as monitor_name,sum(calls) as num from pg_stat_statements  order by id;";
 
 /* wrapper for setenv, returns 0 on success and -1 on error */
 static int do_setenv(const char *name, const char *value) {
@@ -64,6 +83,8 @@ static void help(FILE *f) {
 	fprintf(f, " The third form replays a file generated with -f.\n\n");
 	fprintf(f, "Parse options:\n");
 	fprintf(f, "   -c             (assume CSV logfile)\n");
+	fprintf(f, "   -P             (assume Polardb11 adult logfile)\n");
+	fprintf(f, "   -m             (print monitor info,only support for polardb)\n");
 	fprintf(f, "   -b <timestamp> (start time for parsing logfile)\n");
 	fprintf(f, "   -e <timestamp> (end time for parsing logfile)\n");
 	fprintf(f, "   -q             ( \\' in string literal is a single quote)\n\n");
@@ -85,11 +106,12 @@ static void help(FILE *f) {
 
 int main(int argc, char **argv) {
 	int arg, parse_only = 0, replay_only = 0, port = -1, csv = 0,
-		parse_opt = 0, replay_opt = 0, rc = 0, dry_run = 0;
+		parse_opt = 0, replay_opt = 0, rc = 0, dry_run = 0, monitor_gap = 0;
+	polardb_audit = 0;
 	double factor = 1.0;
 	char *host = NULL, *encoding = NULL, *endptr, *passwd = NULL,
 		*outfilename = NULL, *infilename = NULL,
-		*database_only = NULL, *username_only = NULL,
+		*database_only = NULL, *username_only = NULL, *tmp = NULL,
 		start_time[24] = { '\0' }, end_time[24] = { '\0' };
 	const char *errmsg;
 	unsigned long portnr = 0l, debug = 0l, length;
@@ -106,7 +128,7 @@ int main(int argc, char **argv) {
 
 	/* parse arguments */
 	opterr = 0;
-	while (-1 != (arg = getopt(argc, argv, "vfro:h:p:W:s:E:d:cb:e:qjnX:D:U:"))) {
+	while (-1 != (arg = getopt(argc, argv, "vfro:h:p:W:s:E:d:cb:e:qjnX:D:U:Pm:"))) {
 		switch (arg) {
 			case 'v':
 				version(stdout);
@@ -200,6 +222,14 @@ int main(int argc, char **argv) {
 				parse_opt = 1;
 
 				csv = 1;
+				break;
+			case 'P':
+				parse_opt = 1;
+				polardb_audit = 1;
+				break;
+			case 'm':
+				tmp = ('\0' == *optarg) ? NULL : optarg;
+				monitor_gap = atoi(tmp);
 				break;
 			case 'b':
 				parse_opt = 1;
@@ -324,6 +354,14 @@ int main(int argc, char **argv) {
 		}
 	}
 
+	if(polardb_audit){
+		if(parse_only || replay_only){
+			fprintf(stderr,"only support fisrt pattern for polardb (combined parse and replay)");
+			help(stderr);
+			return 1;
+		}
+	} 
+
 	/* set default encoding */
 	if (NULL != encoding) {
 		if (-1 == do_setenv("PGCLIENTENCODING", encoding)) {
@@ -387,17 +425,29 @@ int main(int argc, char **argv) {
 		rc = 1;
 	}
 
+	const struct timeval * tmp_time = replay_get_time(item);
+	struct timeval monitor_time = {tmp_time->tv_sec, tmp_time->tv_usec};
+	if(polardb_audit && monitor_gap)
+		monitor_connect_init(host, port, passwd);
+
 	while ((0 == rc) && (end_item != item)) {
-		switch ((*consumer)(item)) {
+
+		int n = (*consumer)(item);
+
+		switch (n) {
 			case 0:     /* item not consumed */
 				break;
 			case 1:     /* item consumed */
 				if (! (item = (*provider)())) {
 					rc = 1;
-				}
+				}				
 				break;
 			default:    /* error occurred */
 				rc = 1;
+		}
+		if(polardb_audit && monitor_gap && replay_get_time(item)->tv_sec - monitor_time.tv_sec >= monitor_gap){
+			monitor_connect_execute(monitor_sql);
+			monitor_time.tv_sec = replay_get_time(item)->tv_sec;
 		}
 	}
 
@@ -408,6 +458,7 @@ int main(int argc, char **argv) {
 
 	(*provider_finish)();
 	(*consumer_finish)(dry_run);
+	monitor_connect_finish();
 
 	return rc;
 }

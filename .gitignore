@@ -29,3 +29,5 @@ CVS
 
 # M4 cache
 autom4te.cache/
+.vscode
+devtest

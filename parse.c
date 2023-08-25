@@ -67,8 +67,11 @@ struct connection {
 /* hash structure for "open" connections */
 static struct connection * open_conn[256] = { NULL };
 
+
+
 /* indicates whether we are parsing a CSV file */
 static int csv;
+
 /* start and end timestamp for parsing log entries */
 static const char *start_time, *end_time;
 /* database and username filters for parsing log entries */
@@ -152,7 +155,7 @@ const char * parse_time(const char *source, struct timeval *dest) {
 	char s[24] = { '\0' };  /* modifiable copy of source */
 	static char errmsg[BUFLEN];
 	/* format of timestamp part */
-	static const char format[]="nnnn-nn-nn nn:nn:nn.nnn";
+	static char format[] = "nnnn-nn-nn nn:nn:nn";
 
 	/* check timestamp for validity */
 	if (!source) {
@@ -531,6 +534,250 @@ static int parse_errlog_entry(struct timeval *time, char *user, char *database, 
 	/* sixth part is the log message */
 	overlap_strcpy(line, part6);
 	*message = line;
+
+	/* read the next log entry so that we can peek at it */
+	line = NULL;
+	do {
+		if (NULL != line) {
+			free(line);
+		}
+		if (NULL == (line = read_log_line())) {
+			free(*message);
+			*message = NULL;
+			return -1;
+		}
+
+		/* is it the start of a memory dump? */
+		if (0 == strncmp(line, "TopMemoryContext: ", 18)) {
+			fprintf(stderr, "Found memory dump in line %lu\n", lineno);
+			dump_found = 1;
+			skip_line = 1;
+		} else {
+			/* if there is a dump and the line starts blank,
+			   assume the line is part of the dump
+			*/
+			if (dump_found && (' ' == *line)) {
+				skip_line = 1;
+			} else {
+				skip_line = 0;
+			}
+		}
+	} while (('\0' != *line) && skip_line);
+
+	if ('\0' == *line) {
+		/* EOF, that's ok */
+		keepline = line;
+	} else {
+		/* skip four | to the fifth part */
+		part2 = line;
+		for (i=0; i<4; ++i) {
+			if (NULL == (part2 = strchr(part2, SEPCHAR))) {
+				fprintf(stderr, "Error parsing line %lu: only %d \"%c\" found - log_line_prefix may be wrong\n", lineno, i, SEPCHAR);
+				free(*message);
+				free(line);
+				*message = NULL;
+				return -1;
+			} else {
+				++part2;
+			}
+		}
+
+		/* check if it is a DETAIL */
+		if (strncmp(part2, "DETAIL:  ", 9)) {
+			/* if not, remember the line for the next pass */
+			keepline = line;
+		} else {
+			debug(2, "Found a DETAIL message%s\n", "");
+
+			/* set the return parameter to the detail message */
+			overlap_strcpy(line, part2 + 9);
+			*detail = line;
+		}
+	}
+
+	debug(3, "Leaving parse_errlog_entry%s\n", "");
+	return 1;
+}
+
+
+/* parses the next stderr log entry (and maybe a detail message after that)
+   timestamp, user, database, session ID, search_path,prepare_paramslog, message type, log message 
+   and detail message are returned in the respective parameters
+   "message" and "detail" are malloc'ed if they are not NULL
+   return values: -1 (error), 0 (end-of-file), or 1 (success) 
+*/
+
+static int parse_auditlog_entry_polardb11(struct timeval *time, char *user, char *database, uint64_t *session_id, log_type *type, char **message, char **detail, char* search_path, char* prepare_parse) {
+	char *line = NULL, *part2, *part3, *part4, *part5, *part6, *search_path_, *prepare_parse_;
+	const char *errmsg;
+	int i, skip_line = 0;
+	static int dump_found = 0;
+	/* if not NULL, contains the next log entry to parse */
+	static char* keepline = NULL;
+
+	debug(3, "Entering parse_errlog_entry%s\n", "");
+
+	/* initialize message and detail with NULL */
+	*message = NULL;
+	*detail = NULL;
+
+	/* use cached line or read next line from log file */
+	if (keepline) {
+		line = keepline;
+		keepline = NULL;
+	} else {
+		/* read lines until we are between start_time and end_time */
+		do {
+			if (line) {
+				free(line);
+			}
+			if (NULL == (line = read_log_line())) {
+				return -1;
+			}
+
+			/* is it the start of a memory dump? */
+			if (0 == strncmp(line, "TopMemoryContext: ", 18)) {
+				fprintf(stderr, "Found memory dump in line %lu\n", lineno);
+				dump_found = 1;
+				skip_line = 1;
+			} else {
+				/* if there is a dump and the line starts blank,
+				   assume the line is part of the dump
+				*/
+				if (dump_found && (' ' == *line)) {
+					skip_line = 1;
+				} else {
+					skip_line = 0;
+				}
+			}
+		} while (('\0' != *line)
+			&& (skip_line
+				|| (start_time && (strncmp(line, start_time, 23) < 0))));
+	}
+
+	/* check for EOF */
+	if (('\0' == *line) || (end_time && (strncmp(line, end_time, 23) > 0))) {
+		free(line);
+		debug(3, "Leaving parse_errlog_entry%s\n", "");
+		return 0;
+	}
+
+	/* split line on | in six pieces: time, user, database, session ID, log entry type, rest */
+	// user
+	if (NULL == (part2 = strchr(line, SEPCHAR))) {
+		fprintf(stderr, "Error parsing line %lu: no \"%c\" found - log_line_prefix may be wrong\n", lineno, SEPCHAR);
+		free(line);
+		return -1;
+	} else {
+		*(part2++) = '\0';
+	}
+	// database
+	if (NULL == (part3 = strchr(part2, SEPCHAR))) {
+		fprintf(stderr, "Error parsing line %lu: second \"%c\" not found - log_line_prefix may be wrong\n", lineno, SEPCHAR);
+		free(line);
+		return -1;
+	} else {
+		*(part3++) = '\0';
+	}
+	// session id
+	if (NULL == (part4 = strchr(part3, SEPCHAR))) {
+		fprintf(stderr, "Error parsing line %lu: third \"%c\" not found - log_line_prefix may be wrong\n", lineno, SEPCHAR);
+		free(line);
+		return -1;
+	} else {
+		*(part4++) = '\0';
+	}
+	// search path 
+	if (NULL == (search_path_ = strchr(part4, SEPCHAR))){
+		fprintf(stderr, "Error parsing line %lu: search_path_ \"%c\" not found - log_line_prefix may be wrong\n", lineno, SEPCHAR);
+		free(line);
+		return -1;
+	}else {
+		*(search_path_++) = '\0';
+	}
+	// prepare parse
+	if (NULL == (prepare_parse_ = strchr(search_path_, SEPCHAR))){
+		fprintf(stderr, "Error parsing line %lu: prepare_parse_ \"%c\" not found - log_line_prefix may be wrong\n", lineno, SEPCHAR);
+		free(line);
+		return -1;
+	}else {
+		*(prepare_parse_++) = '\0';
+	}
+	// log type
+	if (NULL == (part5 = strchr(prepare_parse_, SEPCHAR))) {
+		fprintf(stderr, "Error parsing line %lu: fourth \"%c\" not found - log_line_prefix may be wrong\n", lineno, SEPCHAR);
+		free(line);
+		return -1;
+	} else {
+		*(part5++) = '\0';
+	}
+	// log message
+	if (NULL == (part6 = strstr(part5, ":  "))) {
+		fprintf(stderr, "Error parsing line %lu: log message does not begin with a log type\n", lineno);
+		free(line);
+		return -1;
+	} else {
+		*part6 = '\0';
+		part6 += 3;
+	}
+
+	/* first part is the time, parse it into parameter */
+	if ((errmsg = parse_time(line, time))) {
+		fprintf(stderr, "Error parsing line %lu: %s\n", lineno, errmsg);
+		free(line);
+		return -1;
+	}
+
+	/* second part is the username, copy to parameter */
+	if (NAMELEN < strlen(part2)) {
+		fprintf(stderr, "Error parsing line %lu: username exceeds %d characters\n", lineno, NAMELEN);
+		free(line);
+		return -1;
+	} else {
+		strcpy(user, part2);
+	}
+
+	/* third part is the database, copy to parameter */
+	if (NAMELEN < strlen(part3)) {
+		fprintf(stderr, "Error parsing line %lu: database name exceeds %d characters\n", lineno, NAMELEN);
+		free(line);
+		return -1;
+	} else {
+		strcpy(database, part3);
+	}
+
+	/* fourth part is the session ID, copy to parameter */
+	if ((errmsg = parse_session(part4, session_id))) {
+		fprintf(stderr, "Error parsing line %lu: %s\n", lineno, errmsg);
+		free(line);
+		return -1;
+	}
+	/* search path copy to parameter */
+	if (POLARDBlEN < strlen(search_path_)) {
+		fprintf(stderr, "Error parsing line %lu: database name exceeds %d characters\n", lineno, POLARDBlEN);
+		free(line);
+		return -1;
+	} else {
+		strcpy(search_path, search_path_);
+		// printf("search_path is %s, search_path_ is %s\n",search_path,search_path_);
+	}
+	/* prepare parse copy to parameter */
+	if (POLARDBlEN < strlen(prepare_parse_)) {
+		fprintf(stderr, "Error parsing line %lu: database name exceeds %d characters\n", lineno, POLARDBlEN);
+		free(line);
+		return -1;
+	} else {
+		strcpy(prepare_parse, prepare_parse_);
+	}
+	
+	/* fifth part is the log type, copy to parameter */
+	*type = to_log_type(part5);
+
+	/* sixth part is the log message */
+	overlap_strcpy(line, part6);
+	*message = line;
+	// printf("part2 is %s, part3 is %s, part4 is %s, part5 is %s, part6 is %s\n", part2, part3, part4, part5, part6);
+
 
 	/* read the next log entry so that we can peek at it */
 	line = NULL;
@@ -1316,7 +1563,7 @@ void parse_provider_finish() {
 
 replay_item * parse_provider() {
 	replay_item *r = NULL;
-	char *message = NULL, *detail = NULL, *statement = NULL, *namep = NULL, name[NAMELEN + 1], **args, user[NAMELEN + 1], database[NAMELEN + 1], quote_name[NAMELEN + 3];
+	char *message = NULL, *detail = NULL, *statement = NULL, *namep = NULL, name[NAMELEN + 1], **args, user[NAMELEN + 1], database[NAMELEN + 1], quote_name[NAMELEN + 3], search_path[POLARDBlEN], prepare_parse[POLARDBlEN];
 	log_type logtype;
 	uint64_t session_id;
 	int count, i;
@@ -1346,13 +1593,21 @@ replay_item * parse_provider() {
 
 	/* read a log entry until we find an interesting one */
 	while (0 == status) {
-		switch ((*parse_log_entry[csv])(&time, user, database, &session_id, &logtype, &message, &detail)) {
+		int n = 0;
+		if(polardb_audit){
+			n = parse_auditlog_entry_polardb11(&time, user, database, &session_id, &logtype, &message, &detail, search_path, prepare_parse);
+			// printf("search_path is %s \n",search_path);
+			// printf("prepare_parse is %s \n",prepare_parse);
+		}else{
+			n = (*parse_log_entry[csv])(&time, user, database, &session_id, &logtype, &message, &detail);
+		}
+
+		switch (n) {
 			case 0:
 				/* EOF encountered */
 				status = 3;
 				break;
 			case 1:
-				/* Do not process line that does not match any of the specified users and databases */
 				memset(quote_name, '\0', NAMELEN + 3);
 				if ('\0' != *database) {
 					quote_name[0] = '\\';
@@ -1630,6 +1885,14 @@ replay_item * parse_provider() {
 	if (r && (1 <= debug_level) && (end_item != r)) {
 		replay_print_debug(r);
 	}
+
+	if(polardb_audit){
+		r->search_path = (char*)malloc(sizeof(search_path));
+		strcpy(r->search_path,search_path);
+		r->prepare_parse = (char*)malloc(sizeof(prepare_parse));
+		strcpy(r->prepare_parse,prepare_parse);
+	}
+
 	debug(3, "Leaving parse_provider%s\n", "");
 	return r;
 }

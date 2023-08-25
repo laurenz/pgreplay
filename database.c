@@ -78,11 +78,16 @@ struct dbconn {
 	struct timeval session_start;
 	struct timeval stmt_start;
 	char           *errmsg;
+	char		   *search_path;
 	struct dbconn  *next;
 };
+typedef struct dbconn dbconn;
 
 /* linked list of open connections */
 static struct dbconn *connections = NULL;
+
+/* linked list of open connections */
+PGconn *monitor_conn = NULL;
 
 /* remember timestamp of program start and stop */
 static struct timeval start_time;
@@ -112,6 +117,11 @@ static unsigned long stat_sesscnt = 0;        /* total number of sessions */
 static unsigned long stat_sessions = 0;       /* number of concurrent sessions */
 static unsigned long stat_sessmax = 0;        /* maximum concurrent sessions */
 static unsigned long stat_hist[5] = {0, 0, 0, 0, 0};  /* duration histogram */
+static unsigned long old_stat_hist[5] = {0, 0, 0, 0, 0};  /* segment duration histogram */
+
+static PGresult* old_result = NULL;
+static unsigned long old_stat_stmt = 0;
+static unsigned long old_stat_errors = 0;
 
 #define NUM_DELAY_STEPS 11
 
@@ -179,6 +189,21 @@ static int do_sleep(struct timeval *delta) {
 #else
 	return do_select(0, NULL, NULL, NULL, delta);
 #endif
+}
+
+/* 
+set search_path of the connection
+ */
+static int set_search_path(const char * search_path, PGconn * conn){
+	char * set_path = malloc(strlen(search_path) + strlen("set search_path = ;") + 1);
+	sprintf(set_path,"set search_path = %s;",search_path);
+	PGresult* res = PQexec(conn, set_path);
+	if(PQresultStatus(res) != PGRES_COMMAND_OK){
+		fprintf(stderr, "set_search_path: Query execution failed search: %s\n", PQerrorMessage(conn));
+	}
+	PQclear(res);
+	free(set_path);
+	return 0;
 }
 
 static void print_replay_statistics(int dry_run) {
@@ -843,7 +868,7 @@ int database_consumer(replay_item *item) {
 									found_conn->status = conn_wait_write;
 									found_conn->errmsg = NULL;
 									found_conn->next = connections;
-
+									found_conn->search_path = malloc(POLARDBlEN);
 									connections = found_conn;
 
 									/* do not display notices */
@@ -891,11 +916,18 @@ int database_consumer(replay_item *item) {
 				if (found_conn->errmsg) {
 					free(found_conn->errmsg);
 				}
+				if (found_conn->search_path) {
+					free(found_conn->search_path);
+				}
 				free(found_conn);
 
 				break;
 			case pg_execute:
 				debug(2, "Sending simple statement on session 0x" UINT64_FORMAT "\n", replay_get_session_id(item));
+				if(strcmp(item->search_path, found_conn->search_path) != 0){
+					set_search_path(item->search_path, found_conn->db_conn);
+					strcpy(found_conn->search_path, item->search_path);
+				}
 
 				if (! PQsendQuery(found_conn->db_conn, replay_get_statement(item))) {
 					fprintf(stderr, "Error sending simple statement: %s\n", PQerrorMessage(found_conn->db_conn));
@@ -906,6 +938,10 @@ int database_consumer(replay_item *item) {
 				break;
 			case pg_prepare:
 				debug(2, "Sending prepare request on session 0x" UINT64_FORMAT "\n", replay_get_session_id(item));
+				if(strcmp(item->search_path, found_conn->search_path) != 0){
+					set_search_path(item->search_path, found_conn->db_conn);
+					strcpy(found_conn->search_path, item->search_path);
+				}
 
 				/* count preparations for statistics */
 				++stat_prep;
@@ -924,6 +960,10 @@ int database_consumer(replay_item *item) {
 				break;
 			case pg_exec_prepared:
 				debug(2, "Sending prepared statement execution on session 0x" UINT64_FORMAT "\n", replay_get_session_id(item));
+				if(strcmp(item->search_path, found_conn->search_path) != 0){
+					set_search_path(item->search_path, found_conn->db_conn);
+					strcpy(found_conn->search_path, item->search_path);
+				}
 
 				if (! PQsendQueryPrepared(
 						found_conn->db_conn,
@@ -1038,4 +1078,92 @@ int database_consumer_dry_run(replay_item *item) {
 	debug(3, "Leaving database_consumer_dry_run%s\n", "");
 
 	return 1;
+}
+
+/* 
+initailize connect for getting monitor info
+ */
+int monitor_connect_init(const char *host, int port, const char *passwd) {
+    // 建立连接
+	// create connect to db server
+	char conn_info[100] = {'\0'};
+	sprintf(conn_info,"dbname=postgres user=polardb password=%s hostaddr=%s port=%d ", passwd, host, port);
+	
+    monitor_conn = PQconnectdb(conn_info);
+
+    // 检查连接是否成功
+	// check if connect was success.
+    if (PQstatus(monitor_conn) != CONNECTION_OK) {
+        fprintf(stderr, "Connection to database failed: %s", PQerrorMessage(monitor_conn));
+        PQfinish(monitor_conn);
+        return 1;
+    }
+    return 0;
+}
+
+/* 
+get once monitor info 
+ */
+int monitor_connect_execute(const char* sql) {
+	
+	// execute sql
+	static int print_title = 0;
+	if(!print_title){
+		printf("cpu_use mem_use read_count write_count read_bytes write_bytes disk_space active_conn total_conn load5 load10 tps qps stat_correct stat_errors time0 time1 time2 time3 time4\n");
+		print_title++;
+	}
+
+    PGresult *result = PQexec(monitor_conn, sql);
+
+	// check if sql execution was success 
+    if (PQresultStatus(result) != PGRES_TUPLES_OK) {
+        fprintf(stderr, "Query execution failed: %s", PQerrorMessage(monitor_conn));
+        PQclear(result);
+        PQfinish(monitor_conn);
+        return 1;
+    }
+
+	if(old_result){
+		printf("%s ",PQgetvalue(result, 0, 2));
+		printf("%s ",PQgetvalue(result, 1, 2));
+		printf("%ld ",atol(PQgetvalue(result, 2, 2)) - atol(PQgetvalue(old_result, 2, 2)));
+		printf("%ld ",atol(PQgetvalue(result, 3, 2)) - atol(PQgetvalue(old_result, 3, 2)));
+		printf("%ld ",atol(PQgetvalue(result, 4, 2)) - atol(PQgetvalue(old_result, 4, 2)));
+		printf("%ld ",atol(PQgetvalue(result, 5, 2)) - atol(PQgetvalue(old_result, 5, 2)));
+		printf("%s ",PQgetvalue(result, 6, 2));
+		printf("%s ",PQgetvalue(result, 7, 2));
+		printf("%s ",PQgetvalue(result, 8, 2));
+		printf("%s ",PQgetvalue(result, 9, 2));
+		printf("%s ",PQgetvalue(result, 10, 2));
+		printf("%ld ",atol(PQgetvalue(result, 11, 2)) - atol(PQgetvalue(old_result, 11, 2)));
+		printf("%ld ",atol(PQgetvalue(result, 12, 2)) - atol(PQgetvalue(old_result, 12, 2)));
+
+		printf("%lu ", (stat_stmt - stat_errors) - (old_stat_stmt - old_stat_errors) );
+		printf("%lu ", stat_errors - old_stat_errors);
+		printf("%lu ", stat_hist[0] - old_stat_hist[0]);
+		printf("%lu ", stat_hist[1] - old_stat_hist[1]);
+		printf("%lu ", stat_hist[2] - old_stat_hist[2]);
+		printf("%lu ", stat_hist[3] - old_stat_hist[3]);
+		printf("%lu ", stat_hist[4] - old_stat_hist[4]);
+		printf("\n");
+	}
+
+	if(old_result){
+		PQclear(old_result);
+	}
+	old_result = result;
+	old_stat_errors = stat_errors;
+	old_stat_stmt = stat_stmt;
+	memcpy(old_stat_hist, stat_hist, sizeof(stat_hist));
+
+    return 0;
+}
+
+// close connect of monitor info
+int monitor_connect_finish() {
+	// Release resources
+	PQclear(old_result);
+    PQfinish(monitor_conn);
+
+    return 0;
 }

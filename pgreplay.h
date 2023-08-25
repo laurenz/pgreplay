@@ -20,7 +20,7 @@
 
 /* maximum length of a name in PostgreSQL */
 #define NAMELEN 64
-
+#define POLARDBlEN 256
 /* types for replay items */
 typedef enum {
 	pg_connect = 0,
@@ -30,6 +30,16 @@ typedef enum {
 	pg_exec_prepared,
 	pg_cancel
 } replay_type;
+
+struct replay_item {
+	struct timeval time;
+	uint64_t session_id;
+	replay_type type;
+	uint16_t count;
+	char **data;
+	char *search_path;
+	char *prepare_parse;
+};
 
 /* one "command" parsed from a log file to be replayed
    the definition is in replay_item.c */
@@ -168,3 +178,9 @@ extern void win_perror(const char *prefix, int is_network_error);
 #endif
 
 #endif
+
+#define MONITOR_RES_LEN 32
+extern int polardb_audit;
+extern int monitor_connect_init(const char *host, int port, const char *passwd);
+extern int monitor_connect_execute(const char* sql);
+extern int monitor_connect_finish();
