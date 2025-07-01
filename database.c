@@ -1,5 +1,6 @@
 #include "pgreplay.h"
 
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -819,6 +820,8 @@ int database_consumer(replay_item *item) {
 						fprintf(stderr, "Cannot allocate %lu bytes of memory\n", (unsigned long)sizeof(struct dbconn));
 						rc = -1;
 					} else {
+						/* getaddrinfo() may set errno */
+						errno = 0;
 						/* initialize a connection */
 						if (NULL == (found_conn->db_conn = PQconnectStart(connstr))) {
 							fprintf(stderr, "Cannot allocate memory for database connection\n");
@@ -827,6 +830,8 @@ int database_consumer(replay_item *item) {
 						} else {
 							if (CONNECTION_BAD == PQstatus(found_conn->db_conn)) {
 								fprintf(stderr, "Error: connection to database failed: %s\n", PQerrorMessage(found_conn->db_conn));
+								if (errno)
+									fprintf(stderr, "Error detail: %s\n", strerror(errno));
 								rc = -1;
 								PQfinish(found_conn->db_conn);
 								free(found_conn);
