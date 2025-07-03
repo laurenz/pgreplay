@@ -572,6 +572,10 @@ int database_consumer(replay_item *item) {
 										((PGRES_NONFATAL_ERROR == result_status) ? "PGRES_NONFATAL_ERROR" :
 										((PGRES_EMPTY_QUERY == result_status) ? "PGRES_EMPTY_QUERY" : "unexpected status")))));
 
+									if (PGRES_FATAL_ERROR == result_status)
+										debug(1, "Error message session 0x" UINT64_FORMAT ": %s\n",
+											  conn->session_id, PQresultErrorMessage(result));
+
 									if ((PGRES_EMPTY_QUERY != result_status)
 										&& (PGRES_COMMAND_OK != result_status)
 										&& (PGRES_TUPLES_OK != result_status)
