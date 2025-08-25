@@ -443,7 +443,10 @@ int database_consumer(replay_item *item) {
 						debug(2, "Socket for session 0x" UINT64_FORMAT " busy for %s during connect\n", conn->session_id, (conn_wait_write == conn->status) ? "write" : "read");
 						all_idle = 0;
 						break;
-					case 1:
+					case -1:
+						/* error happened in select() */
+						rc = -1;
+					default:
 						/* socket not busy, continue connect process */
 						switch(PQconnectPoll(conn->db_conn)) {
 							case PGRES_POLLING_WRITING:
@@ -502,9 +505,6 @@ int database_consumer(replay_item *item) {
 								PQfinish(conn->db_conn);
 						}
 						break;
-					default:
-						/* error happened in select() */
-						rc = -1;
 				}
 				break;
 
@@ -516,7 +516,10 @@ int database_consumer(replay_item *item) {
 						debug(2, "Session 0x" UINT64_FORMAT " busy writing data\n", conn->session_id);
 						all_idle = 0;
 						break;
-					case 1:
+					case -1:
+						/* error in select() */
+						rc = -1;
+					default:
 						/* try PQflush again */
 						debug(2, "Session 0x" UINT64_FORMAT " flushing data\n", conn->session_id);
 						switch (PQflush(conn->db_conn)) {
@@ -534,9 +537,6 @@ int database_consumer(replay_item *item) {
 								rc = -1;
 						}
 						break;
-					default:
-						/* error in select() */
-						rc = -1;
 				}
 				break;
 
@@ -548,7 +548,10 @@ int database_consumer(replay_item *item) {
 						debug(2, "Session 0x" UINT64_FORMAT " waiting for data\n", conn->session_id);
 						all_idle = 0;
 						break;
-					case 1:
+					case -1:
+						/* error during select() */
+						rc = -1;
+					default:
 						/* read input from connection */
 						if (! PQconsumeInput(conn->db_conn)) {
 							fprintf(stderr, "Error reading from database: %s\n", PQerrorMessage(conn->db_conn));
@@ -632,9 +635,6 @@ int database_consumer(replay_item *item) {
 							}
 						}
 						break;
-					default:
-						/* error during select() */
-						rc = -1;
 				}
 				break;
 		}
