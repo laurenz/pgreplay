@@ -81,6 +81,18 @@ The following utilities are only necessary if you intend to develop pgreplay:
 - GNU tar to `make tarball` (unless you want to roll it by hand)
 - groff to make the HTML documentation with `make html`
 
+Homebrew (macOS)
+----------------
+
+You can install pgreplay via Homebrew using this repository as a tap:
+
+```
+brew tap laurenz/pgreplay https://github.com/laurenz/pgreplay
+brew install laurenz/pgreplay/pgreplay
+```
+
+After installation, verify the binary with `pgreplay -v`.
+
 Docker
 ------
 
