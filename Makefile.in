@@ -61,4 +61,4 @@ install_html: $(EXE).html
 	$(INSTALL) -m 0644 $< $(DESTDIR)$(htmldir)/$<
 
 .c.o:
-	$(CC) -c $(CFLAGS) -DVERSION='"$(VERSION)"' $<
+	$(CC) -c $(CPPFLAGS) $(CFLAGS) -DVERSION='"$(VERSION)"' $<
