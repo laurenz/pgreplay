@@ -1,4 +1,23 @@
-Version 1.4.0
+Version 1.5.0  Nov 13 2025
+
+Enhancements:
+- Add a Dockerfile.
+  Patch by Gonçalo Queirós.
+- Improve the error messages for DNS resolution failure.
+- Report PostgreSQL error messages on debug level 2.
+- Add a "formula" for installing with Homebrew.
+  Patch by Prince Roshan.
+
+Bugfixes:
+- Use the proper printf() format for uint64_t in more cases.
+  Reported by David Nugent.
+- Fix installation on Max OS X.
+  Report by Jeff Doering.
+- Fix a crash after the replay of DEALLOCATE ALL.
+  Reported by Wan Shen Lim.
+- Fix the output format of session IDs.
+
+Version 1.4.0  May 16 2018
 
 Enhancements:
 - Add a replay option "-n" that provides a "dry run" without actually
